@@ -145,7 +145,7 @@ export default function SupportForm({ mode = "donation", context = null }) {
         )}
 
         <button
-          className="support-form__btn"
+          className="support-form__btn cat-card__readmore"
           disabled={sending}
         >
           {sending

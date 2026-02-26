@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/catDetail.scss";
 import BackLink from "../components/backLink/BackLink";
 import SupportForm from "../components/SupportForm/SupportForm";
-import Modal from "../components/Modal/Modal";
+
 
 function getCatImageUrl(imagePath) {
   if (!imagePath) return "";
@@ -64,8 +64,17 @@ export default function CatDetail() {
   const { t, i18n } = useTranslation("common");
   const [cat, setCat] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAdoptOpen, setIsAdoptOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
+const adoptRef = useRef(null);
+useEffect(() => {
+  if (isOpen && adoptRef.current) {
+    adoptRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}, [isOpen]);
   useEffect(() => {
     let mounted = true;
 
@@ -128,7 +137,7 @@ export default function CatDetail() {
         <BackLink to="/adopcion" />
 
         <section className="cat-detail__grid">
-          <div className="cat-detail__media">
+          <div className="cat-detail__media" >
             <div className="cat-detail__imgWrap">
               <div className="cat-detail__imgFrame">
                 {imgUrl ? (
@@ -163,27 +172,31 @@ export default function CatDetail() {
               </p>
 
             )}
-            <button
-              type="button"
-              className="cat-detail__cta"
-              onClick={() => setIsAdoptOpen(true)}
-            >
-              ¿Quieres adoptar a {cat.name}?
-            </button>
+           <button
+  type="button"
+  className={`cat-detail__cta ${isOpen ? "is-open" : ""}`}
+  onClick={() => setIsOpen(v => !v)}
+>
+  <span>
+    {isOpen
+      ? "Cerrar formulario"
+      : `¿Quieres adoptar a ${cat.name}?`}
+  </span>
 
-            <Modal
-              isOpen={isAdoptOpen}
-              onClose={() => setIsAdoptOpen(false)}
-            >
-              <SupportForm
-                mode="adoption"
-                context={{
-                  catId: cat.id,
-                  catName: cat.name
-                }}
-                onSuccess={() => setIsAdoptOpen(false)}
-              />
-            </Modal>
+  <span className="cat-detail__ctaIcon">
+    ▾
+  </span>
+</button>
+
+            {isOpen && (
+              <div className="cat-detail__adoptPanel" ref={adoptRef}>
+                <SupportForm
+                  mode="adoption"
+                  context={{ catId: cat.id, catName: cat.name }}
+                  onSuccess={() => setIsOpen(false)}
+                />
+              </div>
+            )}
           </div>
         </section>
       </div>
