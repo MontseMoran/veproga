@@ -26,15 +26,23 @@
   "donate_form_title": "Donación directa",
   "donate_form_text": "Puedes hacer una aportación puntual a través del siguiente formulario.",
 
-  "volunteer_title": "Hazte voluntario",
-  "volunteer_intro": "Tu tiempo también salva vidas.",
+  "volunteer_title": "Unete al voluntariado",
+  "volunteer_intro": "Tu tiempo, tu experiencia y tu compromiso pueden marcar la diferencia en la vida de muchos gatos.",
+
   "volunteer_how_title": "¿Cómo puedes ayudar?",
-  "volunteer_help_events": "Eventos solidarios",
-  "volunteer_help_transport": "Transporte de animales",
-  "volunteer_help_foster": "Casa de acogida",
-  "volunteer_help_diffusion": "Difusión en redes",
-  "volunteer_form_title": "Quiero ser voluntario",
-  "volunteer_form_text": "Déjanos tus datos y te contactaremos.",
+
+  "volunteer_help_events": "Colaborando en ferias, eventos solidarios y jornadas de adopción.",
+  "volunteer_help_local": "Apoyando en el local de Pallejà donde atendemos y cuidamos a gatos rescatados.",
+  "volunteer_help_transport": "Ayudando en traslados a clínicas veterinarias o en rescates urgentes.",
+  "volunteer_help_foster": "Ofreciendo tu hogar como casa de acogida temporal.",
+  "volunteer_help_diffusion": "Difundiendo adopciones y casos urgentes en redes sociales.",
+  "volunteer_help_feed_colonies": "Participando en la alimentación y supervisión de colonias felinas.",
+  "volunteer_help_materials": "Colaborando en la recogida y organización de materiales (transportines, mantas, comida, medicación).",
+
+  "volunteer_how_note": "No es necesario disponer de mucho tiempo. Nos adaptamos a tu disponibilidad y a tu zona. Cada ayuda, por pequeña que sea, suma.",
+
+  "volunteer_form_title": "Quiero formar parte del voluntariado",
+  "volunteer_form_text": "Déjanos tus datos y cuéntanos cómo te gustaría colaborar. Nos pondremos en contacto contigo lo antes posible.",
 
   "shop_title": "Compras solidarias",
   "shop_intro": "Apóyanos comprando en nuestros perfiles solidarios o adquiriendo productos que nuestros gatos necesitan.",
@@ -58,4 +66,5 @@
 
   "help_open_form": "Abrir formulario",
   "help_close_form": "Cerrar formulario"
+  
 }

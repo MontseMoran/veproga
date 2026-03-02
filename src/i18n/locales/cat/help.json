@@ -26,15 +26,25 @@
   "donate_form_title": "Donació directa",
   "donate_form_text": "Pots fer una aportació puntual a través del següent formulari.",
 
-  "volunteer_title": "Fes-te voluntari",
-  "volunteer_intro": "El teu temps també salva vides.",
+  
+  "volunteer_title": "Uneix-te al voluntariat",
+  "volunteer_intro": "El teu temps, la teva experiència i el teu compromís poden marcar la diferència en la vida de molts gats.",
+
   "volunteer_how_title": "Com pots ajudar?",
-  "volunteer_help_events": "Esdeveniments solidaris",
-  "volunteer_help_transport": "Transport d'animals",
-  "volunteer_help_foster": "Casa d'acollida",
-  "volunteer_help_diffusion": "Difusió a xarxes",
-  "volunteer_form_title": "Vull ser voluntari",
-  "volunteer_form_text": "Deixa'ns les teves dades i et contactarem.",
+
+  "volunteer_help_events": "Col·laborant en fires, esdeveniments solidaris i jornades d’adopció.",
+  "volunteer_help_local": "Donant suport al local de Pallejà on atenem i cuidem gats rescatats.",
+  "volunteer_help_transport": "Ajudant en trasllats a clíniques veterinàries o en rescats urgents.",
+  "volunteer_help_foster": "Oferint casa teva com a acollida temporal.",
+  "volunteer_help_diffusion": "Difonent adopcions i casos urgents a les xarxes socials.",
+  "volunteer_help_feed_colonies": "Participant en l’alimentació i supervisió de colònies felines.",
+  "volunteer_help_materials": "Col·laborant en la recollida i organització de materials (transportins, mantes, menjar, medicació).",
+
+
+  "volunteer_how_note": "No cal disposar de molt temps. Ens adaptem a la teva disponibilitat i a la teva zona. Cada ajuda, per petita que sigui, suma.",
+
+  "volunteer_form_title": "Vull formar part del voluntariat",
+  "volunteer_form_text": "Deixa’ns les teves dades i explica’ns com t’agradaria col·laborar. Ens posarem en contacte amb tu al més aviat possible.",
 
   "shop_title": "Compres solidàries",
   "shop_intro": "Dona'ns suport comprant als nostres perfils solidaris o adquirint productes que els nostres gats necessiten.",
@@ -57,5 +67,6 @@
   "shop_gos_cta": "Anar a Gos i Gat",
 
   "help_open_form": "Obrir formulari",
-  "help_close_form": "Tancar formulari"
+  "help_close_form": "Tancar formulari",
+  "support_volunteer_title": "Sigues part del canvi"
 }

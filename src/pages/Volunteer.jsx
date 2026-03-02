@@ -4,7 +4,7 @@ import SupportForm from "../components/SupportForm/SupportForm";
 import "../styles/volunteer.scss";
 
 export default function Volunteer() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("help");
 
   return (
     <main className="volunteer">
@@ -29,7 +29,14 @@ export default function Volunteer() {
             <li>{t("volunteer_help_transport")}</li>
             <li>{t("volunteer_help_foster")}</li>
             <li>{t("volunteer_help_diffusion")}</li>
+            <li>{t("volunteer_help_feed_colonies")}</li>
+            <li>{t("volunteer_help_local")}</li>
+            <li>{t("volunteer_help_materials")}</li>
           </ul>
+
+          <p className="volunteer__text">
+            {t("volunteer_how_note")}
+          </p>
         </section>
 
         <section className="volunteer__block volunteer__block--form">

@@ -236,7 +236,7 @@
   border-radius: 12px;
   background: #fff;
 }
-/* PostForm / Admin forms */
+
 .card {
   display: grid;
   gap: 12px;
@@ -265,13 +265,13 @@
   resize: vertical;
 }
 
-/* checkbox label (no aplastar) */
+
 .card label > input[type="checkbox"] {
   width: auto;
   margin-right: 8px;
   padding: 0;
 }
-/* contenedor botones superiores */
+
 .admin-top-actions {
   display: flex;
   gap: 12px;
@@ -279,7 +279,7 @@
   flex-wrap: wrap;
 }
 
-/* base común: Link y button idénticos */
+
 .admin-action {
   display: inline-flex;
   align-items: center;
