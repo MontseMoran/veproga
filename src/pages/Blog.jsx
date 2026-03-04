@@ -30,7 +30,7 @@ export default function Blog() {
         </header>
 
         <section className="news__grid">
-          {posts.map((p) => {
+          {posts.map((p, index) => {
             const title =
               (isCat ? p.title_cat : p.title_es) || p.title_es || p.title_cat || "";
             const excerpt =
@@ -41,7 +41,11 @@ export default function Blog() {
               : "";
 
             return (
-              <article key={p.id} className="news-card">
+              <article
+                key={p.id}
+                className="news-card reveal-on-scroll"
+                style={{ "--reveal-delay": `${80 + index * 90}ms` }}
+              >
                 <div
   className="news-card__media"
   style={imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined}

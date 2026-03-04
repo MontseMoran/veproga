@@ -9,13 +9,13 @@ export default function Shop() {
     <main className="shop">
       <div className="shop__container">
 
-        <header className="shop__header">
+        <header className="shop__header reveal-on-scroll" style={{ "--reveal-delay": "60ms" }}>
           <h1 className="shop__title">{t("shop_title")}</h1>
           <p className="shop__intro">{t("shop_intro")}</p>
         </header>
 
        
-        <section className="shop__block shop__block--featured">
+        <section className="shop__block shop__block--featured reveal-on-scroll" style={{ "--reveal-delay": "120ms" }}>
           <h2 className="shop__blockTitle">
             {t("shop_other_title")}
           </h2>
@@ -46,7 +46,7 @@ export default function Shop() {
         </section>
 
       
-        <section className="shop__block">
+        <section className="shop__block reveal-on-scroll" style={{ "--reveal-delay": "220ms" }}>
           <h2 className="shop__blockTitle">
             {t("shop_bodas_title")}
           </h2>
@@ -66,7 +66,7 @@ export default function Shop() {
         </section>
 
         
-        <section className="shop__block">
+        <section className="shop__block reveal-on-scroll" style={{ "--reveal-delay": "320ms" }}>
           <h2 className="shop__blockTitle">
             {t("shop_amazon_title")}
           </h2>
@@ -86,7 +86,7 @@ export default function Shop() {
         </section>
 
        
-        <section className="shop__block">
+        <section className="shop__block reveal-on-scroll" style={{ "--reveal-delay": "420ms" }}>
           <h2 className="shop__blockTitle">
             {t("shop_gos_title")}
           </h2>

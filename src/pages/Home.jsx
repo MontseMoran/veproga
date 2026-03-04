@@ -76,6 +76,26 @@ export default function Home() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  useEffect(() => {
+    const targets = document.querySelectorAll(".home-reveal-target");
+    if (!targets.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+    );
+
+    targets.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
 
   return (
     <main>
@@ -106,7 +126,7 @@ export default function Home() {
           <h2 className="help-title">{tHome("help_title")}</h2>
 
           <div className="help-grid">
-            <Link to="/adopcion" className="help-card">
+            <Link to="/adopcion" className="help-card home-reveal-target" style={{ "--reveal-delay": "80ms" }}>
               <div className="help-icon-wrapper">
                 <img className="help-icon help-icon--adopt" src="images/adoptar.png" alt="" aria-hidden="true" />
               </div>
@@ -114,7 +134,7 @@ export default function Home() {
               <p className="muted">{tHome("help_adopt_desc")}</p>
             </Link>
 
-            <Link to="/donar" className="help-card">
+            <Link to="/donar" className="help-card home-reveal-target" style={{ "--reveal-delay": "180ms" }}>
               <div className="help-icon-wrapper">
                 <img className="help-icon" src="images/donar.png" alt="" aria-hidden="true" />
               </div>
@@ -122,7 +142,7 @@ export default function Home() {
               <p className="muted">{tHome("help_donate_desc")}</p>
             </Link>
 
-            <Link to="/voluntariat" className="help-card">
+            <Link to="/voluntariat" className="help-card home-reveal-target" style={{ "--reveal-delay": "280ms" }}>
               <div className="help-icon-wrapper">
                 <img className="help-icon" src="images/colaborar.png" alt="" aria-hidden="true" />
               </div>
@@ -139,7 +159,7 @@ export default function Home() {
 
         <div className="stories-grid">
 
-          <div className="story-card">
+          <div className="story-card home-reveal-target" style={{ "--reveal-delay": "120ms" }}>
             <div className="story-image">
               <img src="images/felix.png" alt="Félix" />
               <span className="badge">{tHome("adopted_badge")}</span>
@@ -151,7 +171,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="story-card">
+          <div className="story-card home-reveal-target" style={{ "--reveal-delay": "240ms" }}>
             <div className="story-image">
               <img src="images/vincent.png" alt="Vincent" />
               <span className="badge">{tHome("adopted_badge")}</span>
@@ -162,7 +182,7 @@ export default function Home() {
               {tHome("read_story")}
             </Link>
           </div>
-          <div className="story-card">
+          <div className="story-card home-reveal-target" style={{ "--reveal-delay": "360ms" }}>
             <div className="story-image">
               <img src="images/bob.png" alt="Félix" />
               <span className="badge">{tHome("adopted_badge")}</span>
@@ -173,7 +193,7 @@ export default function Home() {
               {tHome("read_story")}
             </Link>
           </div>
-           <div className="story-card">
+           <div className="story-card home-reveal-target" style={{ "--reveal-delay": "480ms" }}>
             <div className="story-image">
               <img src="images/tona.png" alt="Tona" />
               <span className="badge">{tHome("in_foster_badge")}</span>

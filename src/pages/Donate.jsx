@@ -15,14 +15,14 @@ export default function Donate() {
   return (
     <main className="donate">
       <div className="donate__container">
-        <header className="donate__header">
+        <header className="donate__header reveal-on-scroll" style={{ "--reveal-delay": "60ms" }}>
           <h1 className="donate__title">{t("donate_title")}</h1>
           <p className="donate__intro">{t("donate_intro")}</p>
         </header>
 
         <div className="donate__grid">
           
-          <section className="donate__block" aria-labelledby="donate-bank-title">
+          <section className="donate__block reveal-on-scroll" style={{ "--reveal-delay": "120ms" }} aria-labelledby="donate-bank-title">
             <h2 id="donate-bank-title" className="donate__blockTitle">
               {t("donate_bank_title")}
             </h2>
@@ -44,7 +44,7 @@ export default function Donate() {
           </section>
 
         
-          <section className="donate__block" aria-labelledby="donate-teaming-title">
+          <section className="donate__block reveal-on-scroll" style={{ "--reveal-delay": "200ms" }} aria-labelledby="donate-teaming-title">
             <h2 id="donate-teaming-title" className="donate__blockTitle">
               {t("donate_teaming_title")}
             </h2>
@@ -60,7 +60,7 @@ export default function Donate() {
             </a>
           </section>
 
-          <section className="donate__block" aria-labelledby="donate-shop-title">
+          <section className="donate__block reveal-on-scroll" style={{ "--reveal-delay": "280ms" }} aria-labelledby="donate-shop-title">
             <h2 id="donate-shop-title" className="donate__blockTitle">
               {t("donate_shop_title")}
             </h2>
@@ -89,7 +89,8 @@ export default function Donate() {
 
          
           <section
-            className="donate__block donate__block--wide"
+            className="donate__block donate__block--wide reveal-on-scroll"
+            style={{ "--reveal-delay": "360ms" }}
             aria-labelledby="donate-member-title"
           >
             <div className="donate__row">
@@ -122,7 +123,8 @@ export default function Donate() {
 
           
           <section
-            className="donate__block donate__block--wide"
+            className="donate__block donate__block--wide reveal-on-scroll"
+            style={{ "--reveal-delay": "440ms" }}
             aria-labelledby="donate-sponsor-title"
           >
             <div className="donate__row">

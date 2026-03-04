@@ -107,7 +107,7 @@ export default function Adoption() {
   return (
     <main className="adoption">
       <div className="adoption__container">
-        <header className="adoption__header">
+        <header className="adoption__header reveal-on-scroll" style={{ "--reveal-delay": "80ms" }}>
           <h1 className="adoption__title">{t("adoption")}</h1>
           <p className="adoption__intro">{t("adoption_intro")}</p>
           
@@ -120,12 +120,16 @@ export default function Adoption() {
         ) : (
           <>
             <section className="adoption__grid" aria-label={t("adoption_list_aria")}>
-              {visibleCats.map((cat) => {
+              {visibleCats.map((cat, index) => {
                 const desc = (isCat ? cat.description_cat : cat.description_es) || cat.description_es || cat.description_cat || "";
                 const imgUrl = getCatImageUrl(cat.image_path);
 
                 return (
-                  <article key={cat.id} className="cat-card">
+                  <article
+                    key={cat.id}
+                    className="cat-card reveal-on-scroll"
+                    style={{ "--reveal-delay": `${80 + index * 90}ms` }}
+                  >
 
                     <div className="cat-card__media">
                       <div className="cat-card__imgWrap">
@@ -175,7 +179,11 @@ export default function Adoption() {
             </section>
 
             {totalPages > 1 && (
-              <nav className="adoption__pagination" aria-label={t("adoption_pagination_aria")}>
+              <nav
+                className="adoption__pagination reveal-on-scroll"
+                style={{ "--reveal-delay": "220ms" }}
+                aria-label={t("adoption_pagination_aria")}
+              >
                 <button
                   type="button"
                   className="adoption__pageBtn"

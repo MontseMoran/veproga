@@ -6,6 +6,17 @@
   background: #fff;
 }
 
+@keyframes homeFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .hero::after {
   content: "";
   position: absolute;
@@ -76,6 +87,7 @@
    text-shadow:
     0 1px 1px rgba(255, 255, 255, 0.35),
     0 2px 6px rgba(0, 0, 0, 0.28);
+  animation: homeFadeUp 900ms ease both;
 }
 
 .story-image img {
@@ -84,11 +96,21 @@
   border-radius: 14px;
 }
 
+@keyframes storySheen {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(160%) skewX(-18deg);
+  }
+}
+
 
 
 /* --- Com ajudar (iconos) --- */
 .help-section {
   padding: 32px 0; /* base mobile */
+  animation: homeFadeUp 980ms ease 220ms both;
 }
 
 .help-title {
@@ -100,6 +122,24 @@
   display: grid;
   grid-template-columns: 1fr; /* móvil: vertical */
   gap: 18px;
+}
+
+.home-reveal-target {
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+  filter: blur(2px);
+  transition:
+    opacity 900ms ease,
+    transform 900ms cubic-bezier(.2,.7,.2,1),
+    filter 900ms ease;
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: transform, opacity;
+}
+
+.home-reveal-target.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
 }
 
 .help-card {
@@ -161,16 +201,102 @@
 .help-card:hover .help-icon {
   transform: scale(1.08);
 }
+
+.help-card.home-reveal-target .help-icon {
+  opacity: 0.01;
+  transform: translateY(14px) scale(0.9);
+  transition:
+    opacity 1050ms ease,
+    transform 1050ms cubic-bezier(.2,.7,.2,1);
+  transition-delay: calc(var(--reveal-delay, 0ms) + 120ms);
+}
+
+.help-card.home-reveal-target.is-visible .help-icon {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
 .stories-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
   margin-top: 24px;
 }
+
+.success-section {
+  animation: homeFadeUp 1050ms ease 380ms both;
+}
+
+.stories-grid .story-card {
+  animation: none;
+}
+.story-image {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  isolation: isolate;
+}
+
+.story-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 120% at 10% 0%, rgba(255,255,255,0.18), transparent 46%),
+    linear-gradient(to top, rgba(0,0,0,0.22), rgba(0,0,0,0.03) 38%, rgba(0,0,0,0));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.story-image::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: -40%;
+  width: 32%;
+  height: 170%;
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.34) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+}
+
 .story-image img {
   border-radius: 18px;
   border: 1px solid rgba(0,0,0,0.16);
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  transition: transform 1200ms cubic-bezier(.2,.7,.2,1), filter 1200ms ease;
+  transform-origin: 50% 45%;
+  filter: saturate(1.03) contrast(1.03);
+}
+
+.story-card:hover .story-image img {
+  transform: scale(1.065);
+  filter: saturate(1.08) contrast(1.06);
+}
+
+.story-card:hover .story-image::before {
+  opacity: 1;
+  animation: storySheen 1400ms ease-out;
+}
+
+.story-image .badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 3;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(5px);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(25, 25, 25, 0.88);
 }
 
 .story-card .btn {
@@ -378,5 +504,24 @@
     max-width: 2200px;
     padding-left: clamp(36px, 4vw, 84px);
     padding-right: clamp(36px, 4vw, 84px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-title,
+  .help-section,
+  .success-section,
+  .stories-grid .story-card,
+  .home-reveal-target,
+  .help-card.home-reveal-target .help-icon,
+  .story-image img {
+    animation: none;
+    transition: none;
+  }
+
+  .home-reveal-target {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }

@@ -10,7 +10,7 @@ export default function Volunteer() {
     <main className="volunteer">
       <div className="volunteer__container">
 
-        <header className="volunteer__header">
+        <header className="volunteer__header reveal-on-scroll" style={{ "--reveal-delay": "60ms" }}>
           <h1 className="volunteer__title">
             {t("volunteer_title")}
           </h1>
@@ -19,7 +19,7 @@ export default function Volunteer() {
           </p>
         </header>
 
-        <section className="volunteer__block">
+        <section className="volunteer__block reveal-on-scroll" style={{ "--reveal-delay": "140ms" }}>
           <h2 className="volunteer__blockTitle">
             {t("volunteer_how_title")}
           </h2>
@@ -39,7 +39,7 @@ export default function Volunteer() {
           </p>
         </section>
 
-        <section className="volunteer__block volunteer__block--form">
+        <section className="volunteer__block volunteer__block--form reveal-on-scroll" style={{ "--reveal-delay": "240ms" }}>
           <h2 className="volunteer__blockTitle">
             {t("volunteer_form_title")}
           </h2>

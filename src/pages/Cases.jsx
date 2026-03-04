@@ -18,10 +18,14 @@ export default function Cases() {
 
   return (
     <main className="container">
-      <h1>{t("cases")}</h1>
+      <h1 className="reveal-on-scroll" style={{ "--reveal-delay": "80ms" }}>{t("cases")}</h1>
       <div className="grid">
-        {posts.map((p) => (
-          <article key={p.id} className="card">
+        {posts.map((p, index) => (
+          <article
+            key={p.id}
+            className="card reveal-on-scroll"
+            style={{ "--reveal-delay": `${100 + index * 90}ms` }}
+          >
             <img
               src={
                 p.image_path

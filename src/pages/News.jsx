@@ -38,7 +38,7 @@ export default function News() {
         </header>
 
         <section className="news__grid">
-          {posts.map((p) => {
+          {posts.map((p, index) => {
             const title = (isCat ? p.title_cat : p.title_es) || p.title_es || p.title_cat || "";
             const excerpt = (isCat ? p.excerpt_cat : p.excerpt_es) || p.excerpt_es || p.excerpt_cat || "";
 
@@ -51,7 +51,8 @@ export default function News() {
             return (
               <article
                 key={p.id}
-                className={`news-card ${p.type === "urgent" ? "news-card--urgent" : ""}`}
+                className={`news-card reveal-on-scroll ${p.type === "urgent" ? "news-card--urgent" : ""}`}
+                style={{ "--reveal-delay": `${80 + index * 90}ms` }}
               >
                 <div className="news-card__media">
                   {imageUrl ? (

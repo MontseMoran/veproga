@@ -152,6 +152,24 @@ html, body {
   flex: 1;
 }
 
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+  filter: blur(2px);
+  transition:
+    opacity 850ms ease,
+    transform 850ms cubic-bezier(.2,.7,.2,1),
+    filter 850ms ease;
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: transform, opacity;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
 
 
 
@@ -202,5 +220,14 @@ html, body {
 @media (min-width: 2560px) {
   .container {
     max-width: 1800px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
   }
 }
