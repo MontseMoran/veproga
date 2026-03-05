@@ -109,7 +109,7 @@
 
 /* --- Com ajudar (iconos) --- */
 .help-section {
-  padding: 32px 0; /* base mobile */
+  padding: 32px 0 clamp(40px, 7vw, 88px); /* base mobile */
   animation: homeFadeUp 980ms ease 220ms both;
 }
 
@@ -224,6 +224,17 @@
 
 .success-section {
   animation: homeFadeUp 1050ms ease 380ms both;
+  padding-top: clamp(36px, 6vw, 84px);
+}
+
+.success-section > h2 {
+  text-align: center;
+  margin: 0 0 14px;
+}
+
+.success-section > p {
+  margin: 0 auto;
+  text-align: center;
 }
 
 .stories-grid .story-card {
@@ -321,7 +332,7 @@
 /* ===== TABLET (>=600px) ===== */
 @media (min-width: 600px) and (max-width: 899px) {
   .help-section {
-    padding: 40px 0;
+    padding: 40px 0 clamp(48px, 6vw, 92px);
   }
 
   .help-title {
@@ -358,8 +369,8 @@
     max-width: 760px;
     margin: 0 auto;
   }
-    .success-section p {
-    max-width: 520px;
+    .success-section > p {
+    max-width: 680px;
   }
 
   .story-card {
@@ -427,13 +438,21 @@
   .stories-grid {
     grid-template-columns: repeat(3, 1fr);
     max-width: none;
-    margin: 24px auto 0;
+    margin: 40px auto 0;
   }
 
   .container.success-section {
     max-width: 1400px;
     padding-left: 24px;
     padding-right: 24px;
+  }
+
+  .success-section {
+    padding-top: clamp(52px, 5vw, 88px);
+  }
+
+  .success-section > p {
+    max-width: none;
   }
 }
 

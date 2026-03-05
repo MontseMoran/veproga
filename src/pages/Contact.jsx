@@ -10,7 +10,7 @@ export default function Contact() {
     <main className="contact-page">
       <div className="container contact-page__content">
         {/* CONTACTO DIRECTO */}
-        <section className="card">
+        <section className="card reveal-on-scroll" style={{ "--reveal-delay": "80ms" }}>
           <h2>{t("contact_subtitle")}</h2>
           <p className="muted">{t("contact_intro")}</p>
 
@@ -34,7 +34,7 @@ export default function Contact() {
         </section>
 
         {/* SI ENCUENTRAS UN GATO */}
-        <section className="card">
+        <section className="card reveal-on-scroll" style={{ "--reveal-delay": "180ms" }}>
           <h2>{t("rescue_title")}</h2>
           <p className="muted">{t("rescue_intro")}</p>
 

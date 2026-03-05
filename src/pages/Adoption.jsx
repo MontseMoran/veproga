@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useTranslation } from "react-i18next";
 import "../styles/cats.scss";
 import { Link } from "react-router-dom";
-import { getPublishedCats } from "../lib/catsCache";
+import { getPublishedCatsByStatus } from "../lib/catsCache";
 
 
 function toValidDate(value) {
@@ -83,7 +83,7 @@ export default function Adoption() {
 
     (async () => {
       setLoading(true);
-      const data = await getPublishedCats();
+      const data = await getPublishedCatsByStatus("en_adopcion");
       if (mounted) setCats(data || []);
       if (mounted) setLoading(false);
     })();

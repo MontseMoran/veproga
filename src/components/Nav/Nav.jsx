@@ -116,6 +116,14 @@ export default function Nav() {
                     >
                       {t("cats_special_cases")}
                     </NavLink>
+
+                    <NavLink
+                      to="/ultimos-adoptados"
+                      className="drop-item"
+                      onClick={closeAll}
+                    >
+                      {t("cats_latest_adopted")}
+                    </NavLink>
                   </div>
                 </div>
 

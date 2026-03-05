@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabaseClient";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { getPublishedCatsByStatus } from "../lib/catsCache";
+import { getLatestAdoptedCats } from "../lib/catsCache";
 import "../styles/cats.scss";
 
 function toValidDate(value) {
@@ -57,70 +57,65 @@ function getSterilizedLabel(sterilized, t) {
   return sterilized ? t("sterilized_yes") : t("sterilized_no");
 }
 
-export default function Cases() {
+function getCatImageUrl(imagePath) {
+  if (!imagePath) return "";
+  return supabase.storage.from("cats").getPublicUrl(imagePath).data.publicUrl;
+}
+
+export default function LatestAdopted() {
   const { t, i18n } = useTranslation("common");
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const isCat = i18n.language?.startsWith("cat");
 
   useEffect(() => {
     let mounted = true;
+
     (async () => {
       setLoading(true);
-      const data = await getPublishedCatsByStatus("caso_especial", {
-        orderBy: "updated_at",
-        ascending: false,
-      });
+      const data = await getLatestAdoptedCats(10);
       if (mounted) setCats(data || []);
       if (mounted) setLoading(false);
     })();
-    return () => (mounted = false);
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
     <main className="adoption">
       <div className="adoption__container">
         <header className="adoption__header reveal-on-scroll" style={{ "--reveal-delay": "80ms" }}>
-          <h1 className="adoption__title">{t("cats_special_cases")}</h1>
+          <h1 className="adoption__title">{t("cats_latest_adopted")}</h1>
+          <p className="adoption__intro">{t("cats_latest_adopted_intro")}</p>
         </header>
 
         {loading ? (
-          <section className="cases-loading" aria-live="polite" aria-busy="true">
-            <p className="adoption__muted cases-loading__text">{t("loading")}</p>
-            <div className="cases-loading__walk" aria-hidden="true">
-              <span className="cases-loading__paw cases-loading__paw--first" />
-              <span className="cases-loading__paw cases-loading__paw--second" />
-            </div>
-          </section>
+          <p className="adoption__muted">{t("loading")}</p>
+        ) : cats.length === 0 ? (
+          <p className="adoption__muted">{t("cats_latest_adopted_empty")}</p>
         ) : (
-          <section className="adoption__grid" aria-label={t("cats_special_cases")}>
+          <section className="adoption__grid" aria-label={t("cats_latest_adopted_aria")}>
             {cats.map((cat, index) => {
-              const desc =
-                (isCat ? cat.description_cat : cat.description_es) ||
-                cat.description_es ||
-                cat.description_cat ||
-                "";
-
-              const imageUrl = cat.image_path
-                ? supabase.storage
-                    .from(import.meta.env.VITE_SUPABASE_BUCKET || "cats")
-                    .getPublicUrl(cat.image_path).data.publicUrl
-                : "";
+              const desc = (isCat ? cat.description_cat : cat.description_es) || cat.description_es || cat.description_cat || "";
+              const imgUrl = getCatImageUrl(cat.image_path);
 
               return (
                 <article
                   key={cat.id}
                   className="cat-card reveal-on-scroll"
-                  style={{ "--reveal-delay": `${100 + index * 90}ms` }}
+                  style={{ "--reveal-delay": `${80 + index * 90}ms` }}
                 >
                   <div className="cat-card__media">
                     <div className="cat-card__imgWrap">
                       <div
-                        className={`cat-card__imgFrame ${imageUrl ? "has-image" : ""}`}
-                        style={imageUrl ? { "--cat-bg": `url(${imageUrl})` } : undefined}
+                        className={`cat-card__imgFrame ${imgUrl ? "has-image" : ""}`}
+                        style={imgUrl ? { "--cat-bg": `url(${imgUrl})` } : undefined}
                       >
-                        {imageUrl ? (
-                          <img className="cat-card__img" src={imageUrl} alt={cat.name} loading="lazy" />
+                        {imgUrl ? (
+                          <img className="cat-card__img" src={imgUrl} alt={cat.name} loading="lazy" />
                         ) : (
                           <div className="cat-card__imgPlaceholder" />
                         )}
@@ -137,9 +132,11 @@ export default function Cases() {
                       <span className="cat-chip">{getSterilizedLabel(!!cat.sterilized, t)}</span>
                     </div>
 
-                    <p className="cat-card__desc is-clamped">
-                      {desc || t("description_empty")}
-                    </p>
+                    {desc ? (
+                      <p className="cat-card__desc is-clamped">{desc}</p>
+                    ) : (
+                      <p className="cat-card__desc cat-card__desc--empty">{t("description_empty")}</p>
+                    )}
 
                     <Link className="cat-card__readmore" to={`/adopcion/${cat.id}`}>
                       {t("read_more")}

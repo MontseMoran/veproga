@@ -25,9 +25,9 @@ export default function Volunteer() {
           </h2>
 
           <ul className="volunteer__list">
-            <li>{t("volunteer_help_events")}</li>
-            <li>{t("volunteer_help_transport")}</li>
             <li>{t("volunteer_help_foster")}</li>
+            <li>{t("volunteer_help_events")}</li>
+            <li>{t("volunteer_help_transport")}</li>      
             <li>{t("volunteer_help_diffusion")}</li>
             <li>{t("volunteer_help_feed_colonies")}</li>
             <li>{t("volunteer_help_local")}</li>

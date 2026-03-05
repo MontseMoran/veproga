@@ -23,6 +23,7 @@ import CatDetail from "./pages/CatDetail";
 import Volunteer  from "./pages/Volunteer";
 import Shop from "./pages/Shop";
 import Story from "./pages/Story";
+import LatestAdopted from "./pages/LatestAdopted";
 
 function SiteLayout() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/adopcion" element={<Adoption />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/casos-dificiles" element={<Cases />} />
+        <Route path="/ultimos-adoptados" element={<LatestAdopted />} />
         <Route path="/noticias" element={<News />} />
         <Route path="/noticias/:id" element={<PostDetail />} />
         <Route path="/blog/:id" element={<PostDetail />} />
