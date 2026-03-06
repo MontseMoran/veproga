@@ -58,7 +58,8 @@ function getSterilizedLabel(sterilized, t) {
 }
 
 function isPositiveResult(value) {
-  return String(value || "").toLowerCase() === "positive";
+  const normalized = String(value || "").trim().toLowerCase();
+  return ["positive", "positivo", "positiva", "positiu"].includes(normalized);
 }
 
 function getPositiveHealthChips(cat, t) {
@@ -168,3 +169,5 @@ export default function LatestAdopted() {
     </main>
   );
 }
+
+
