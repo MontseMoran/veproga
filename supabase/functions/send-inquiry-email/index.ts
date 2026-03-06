@@ -42,7 +42,7 @@ function getModeLabel(mode?: string, lang?: string) {
 
   if (isCat) {
     if (normalized === "adoption") return "adoptar";
-    if (normalized === "sponsor") return "apadrinar";
+    if (normalized === "sponsor") return "amadrinar";
     if (normalized === "member") return "fer-se soci";
     if (normalized === "volunteer") return "fer voluntariat";
     if (normalized === "donation") return "fer una donacio";

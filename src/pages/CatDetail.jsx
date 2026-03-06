@@ -152,7 +152,7 @@ export default function CatDetail() {
   const imgUrl = getCatImageUrl(cat.image_path);
   const isCat = i18n.language === "cat";
   const healthChips = getPositiveHealthChips(cat, t);
-  const sponsorCtaLabel = `${isCat ? "Apadrina a" : "Amadrina a"} ${cat.name}`;
+  const sponsorCtaLabel = `${isCat ? "Amadrina a" : "Amadrina a"} ${cat.name}`;
   const specialSupportMode = getSpecialSupportMode(cat);
   const showAdoptionForm =
     specialSupportMode === "adoption_only" || specialSupportMode === "both";

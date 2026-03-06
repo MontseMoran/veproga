@@ -388,7 +388,12 @@ filter: brightness(0) invert(1);
 
 @media (min-width: 1440px) {
   .adoption__grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(260px, 320px));
+    justify-content: center;
+  }
+
+  .adoption__grid--cases {
+    grid-template-columns: repeat(var(--cases-cols, 5), minmax(260px, 320px));
   }
 
   .adoption__title {

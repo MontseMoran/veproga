@@ -37,7 +37,7 @@ export default function Privacy() {
           <h2>{isCat ? "Finalitat" : "Finalidad"}</h2>
           <p>
             {isCat
-              ? "Gestionar sol·licituds d'adopció, apadrinament, voluntariat i contacte."
+              ? "Gestionar sol·licituds d'adopció, amadrinament, voluntariat i contacte."
               : "Gestionar solicitudes de adopción, amadrinamiento, voluntariado y contacto."}
           </p>
         </section>

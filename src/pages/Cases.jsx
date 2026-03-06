@@ -106,7 +106,11 @@ export default function Cases() {
             </div>
           </section>
         ) : (
-          <section className="adoption__grid" aria-label={t("cats_special_cases")}>
+          <section
+            className="adoption__grid adoption__grid--cases"
+            style={{ "--cases-cols": Math.min(5, Math.max(1, cats.length)) }}
+            aria-label={t("cats_special_cases")}
+          >
             {cats.map((cat, index) => {
               const descRaw =
                 (isCat ? cat.description_cat : cat.description_es) ||
