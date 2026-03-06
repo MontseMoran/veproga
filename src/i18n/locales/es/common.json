@@ -49,6 +49,8 @@
 
   "sterilized_yes": "Esterilizado",
   "sterilized_no": "Sin esterilizar",
+  "health_felv_positive": "Leucemia positiva",
+  "health_fiv_positive": "Inmuno positiva",
 
   "description_empty": "Sin descripción.",
   "cat_image_alt": "Foto de {{name}}",

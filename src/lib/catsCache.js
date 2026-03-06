@@ -35,7 +35,7 @@ async function withCache(key, fetcher, ttlMs = DEFAULT_TTL_MS) {
 }
 
 const CAT_SELECT =
-  "id,name,birth_date,sex,description_es,description_cat,status,sterilized,image_path,published,created_at,updated_at";
+  "id,name,birth_date,sex,description_es,description_cat,status,sterilized,tested,fiv_result,felv_result,image_path,published,created_at,updated_at";
 
 export async function getPublishedCats() {
   const key = getCacheKey("cats_list", { published: true });

@@ -57,6 +57,17 @@ function getSterilizedLabel(sterilized, t) {
   return sterilized ? t("sterilized_yes") : t("sterilized_no");
 }
 
+function isPositiveResult(value) {
+  return String(value || "").toLowerCase() === "positive";
+}
+
+function getPositiveHealthChips(cat, t) {
+  const chips = [];
+  if (isPositiveResult(cat?.felv_result)) chips.push(t("health_felv_positive"));
+  if (isPositiveResult(cat?.fiv_result)) chips.push(t("health_fiv_positive"));
+  return chips;
+}
+
 export default function Cases() {
   const { t, i18n } = useTranslation("common");
   const [cats, setCats] = useState([]);
@@ -106,6 +117,7 @@ export default function Cases() {
                     .from(import.meta.env.VITE_SUPABASE_BUCKET || "cats")
                     .getPublicUrl(cat.image_path).data.publicUrl
                 : "";
+              const healthChips = getPositiveHealthChips(cat, t);
 
               return (
                 <article
@@ -135,6 +147,11 @@ export default function Cases() {
                       <span className="cat-chip">{getAgeLabel(cat.birth_date, t)}</span>
                       <span className="cat-chip">{getSexLabel(cat.sex, t)}</span>
                       <span className="cat-chip">{getSterilizedLabel(!!cat.sterilized, t)}</span>
+                      {healthChips.map((chipLabel) => (
+                        <span key={`${cat.id}-${chipLabel}`} className="cat-chip cat-chip--health-positive">
+                          {chipLabel}
+                        </span>
+                      ))}
                     </div>
 
                     <p className="cat-card__desc is-clamped">

@@ -60,6 +60,17 @@ function getSterilizedLabel(sterilized, t) {
   return sterilized ? t("sterilized_yes") : t("sterilized_no");
 }
 
+function isPositiveResult(value) {
+  return String(value || "").toLowerCase() === "positive";
+}
+
+function getPositiveHealthChips(cat, t) {
+  const chips = [];
+  if (isPositiveResult(cat?.felv_result)) chips.push(t("health_felv_positive"));
+  if (isPositiveResult(cat?.fiv_result)) chips.push(t("health_fiv_positive"));
+  return chips;
+}
+
 function getStatusLabel(status, t) {
   if (!status) return "";
   const key = `status_${status}`;
@@ -125,6 +136,7 @@ export default function CatDetail() {
 
   const imgUrl = getCatImageUrl(cat.image_path);
   const isCat = i18n.language === "cat";
+  const healthChips = getPositiveHealthChips(cat, t);
 
   const desc = (
     isCat
@@ -163,6 +175,11 @@ export default function CatDetail() {
                 {getSterilizedLabel(!!cat.sterilized, t)}
               </span>
               {cat.status && <span className="cat-chip">{getStatusLabel(cat.status, t)}</span>}
+              {healthChips.map((chipLabel) => (
+                <span key={`${cat.id}-${chipLabel}`} className="cat-chip cat-chip--health-positive">
+                  {chipLabel}
+                </span>
+              ))}
             </div>
 
             {desc ? (

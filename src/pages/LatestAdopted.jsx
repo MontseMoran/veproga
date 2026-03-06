@@ -57,6 +57,17 @@ function getSterilizedLabel(sterilized, t) {
   return sterilized ? t("sterilized_yes") : t("sterilized_no");
 }
 
+function isPositiveResult(value) {
+  return String(value || "").toLowerCase() === "positive";
+}
+
+function getPositiveHealthChips(cat, t) {
+  const chips = [];
+  if (isPositiveResult(cat?.felv_result)) chips.push(t("health_felv_positive"));
+  if (isPositiveResult(cat?.fiv_result)) chips.push(t("health_fiv_positive"));
+  return chips;
+}
+
 function getCatImageUrl(imagePath) {
   if (!imagePath) return "";
   return supabase.storage.from("cats").getPublicUrl(imagePath).data.publicUrl;
@@ -101,6 +112,7 @@ export default function LatestAdopted() {
             {cats.map((cat, index) => {
               const desc = (isCat ? cat.description_cat : cat.description_es) || cat.description_es || cat.description_cat || "";
               const imgUrl = getCatImageUrl(cat.image_path);
+              const healthChips = getPositiveHealthChips(cat, t);
 
               return (
                 <article
@@ -130,6 +142,11 @@ export default function LatestAdopted() {
                       <span className="cat-chip">{getAgeLabel(cat.birth_date, t)}</span>
                       <span className="cat-chip">{getSexLabel(cat.sex, t)}</span>
                       <span className="cat-chip">{getSterilizedLabel(!!cat.sterilized, t)}</span>
+                      {healthChips.map((chipLabel) => (
+                        <span key={`${cat.id}-${chipLabel}`} className="cat-chip cat-chip--health-positive">
+                          {chipLabel}
+                        </span>
+                      ))}
                     </div>
 
                     {desc ? (

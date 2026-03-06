@@ -49,6 +49,8 @@
 
   "sterilized_yes": "Esterilitzat",
   "sterilized_no": "Sense esterilitzar",
+  "health_felv_positive": "Leucemia positiva",
+  "health_fiv_positive": "Immuno positiva",
 
   "description_empty": "Sense descripció.",
   "cat_image_alt": "Foto de {{name}}",

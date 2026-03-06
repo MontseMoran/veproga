@@ -269,6 +269,12 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.cat-chip--health-positive {
+  background: rgba(179, 36, 36, 0.1);
+  color: rgba(120, 22, 22, 0.95);
+  border-color: rgba(179, 36, 36, 0.25);
+}
+
 
 .cat-card__desc {
   line-height: 1.6;
