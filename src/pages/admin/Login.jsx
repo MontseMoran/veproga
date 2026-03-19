@@ -1,44 +1,30 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import "../../styles/admin.scss";
 
 export default function Login() {
-  const { t, i18n } = useTranslation("admin");
   const nav = useNavigate();
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const currentLang =
-    i18n.language?.startsWith("cat") || i18n.language?.startsWith("ca")
-      ? "cat"
-      : "es";
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
 
-  const changeLang = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem("i18nextLng", lng);
-  };
+    try {
+      const normalizedEmail = `${username.trim().toLowerCase()}@gmail.com`;
 
- const handleLogin = async (e) => {
-  e.preventDefault();
-  setErrorMsg("");
-  setLoading(true);
-
-  try {
-    const username = email.trim().toLowerCase();
-    const internalEmail = username.includes("@")
-      ? username
-      : `${username}@sosmaullidos.local`;
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: internalEmail,
-      password,
-    });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        
+        password,
+      });
 
       if (error) {
         setErrorMsg(error.message);
@@ -56,59 +42,36 @@ export default function Login() {
   return (
     <div className="admin-auth">
       <div className="admin-auth__card">
-        <div className="admin-lang">
-          <button
-            type="button"
-            className={`admin-lang__btn ${currentLang === "es" ? "is-active" : ""}`}
-            onClick={() => changeLang("es")}
-          >
-            ES
-          </button>
-          <button
-            type="button"
-            className={`admin-lang__btn ${currentLang === "cat" ? "is-active" : ""}`}
-            onClick={() => changeLang("cat")}
-          >
-            CAT
-          </button>
-        </div>
-
-        <h1 className="admin-auth__title">{t("admin_login_title")}</h1>
-        <p className="admin-auth__subtitle">{t("admin_note")}</p>
+        <h1 className="admin-auth__title">Acceso al panel</h1>
+        <p className="admin-auth__subtitle">
+          Introduce el usuario y la contrasena de administracion.
+        </p>
 
         <form className="admin-auth__form" onSubmit={handleLogin}>
-          <label className="admin-auth__label">{t("admin_email")}</label>
+          <label className="admin-auth__label">Usuario</label>
           <input
             className="admin-auth__input"
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
             required
-            
           />
 
-          <label className="admin-auth__label">{t("admin_password")}</label>
+          <label className="admin-auth__label">Contrasena</label>
           <div className="admin-auth__passwordWrap">
             <input
               className="admin-auth__input admin-auth__input--password"
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               required
             />
+
             <button
               type="button"
               className="admin-auth__passwordToggle"
               onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={
-                showPassword
-                  ? currentLang === "cat"
-                    ? "Amagar contrasenya"
-                    : "Ocultar contraseña"
-                  : currentLang === "cat"
-                    ? "Mostrar contrasenya"
-                    : "Mostrar contraseña"
-              }
+              aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
               aria-pressed={showPassword}
             >
               {showPassword ? (
@@ -130,7 +93,7 @@ export default function Login() {
           {errorMsg ? <div className="admin-auth__error">{errorMsg}</div> : null}
 
           <button className="admin-auth__btn" type="submit" disabled={loading}>
-            {loading ? t("admin_entering") : t("admin_enter")}
+            {loading ? "Entrando..." : "Entrar"}
           </button>
         </form>
       </div>

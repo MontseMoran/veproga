@@ -1,13 +1,20 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
-  const { t } = useTranslation("admin");
-
   return (
     <div>
-      <h1>{t("admin_panel")}</h1>
-      <p>{t("admin_choose_section")}</p>
+      <h1>Panel de administracion</h1>
+      <p>Desde aqui la propietaria puede organizar categorias y subir articulos con foto, descripcion y tallas.</p>
+
+      <div className="admin-top-actions">
+        <Link to="/admin/categorias" className="admin-action admin-action--primary">
+          Gestionar categorias
+        </Link>
+        <Link to="/admin/productos" className="admin-action admin-action--ghost">
+          Gestionar productos
+        </Link>
+      </div>
     </div>
   );
 }

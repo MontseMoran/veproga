@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import "./styles/global.scss";
-import "./i18n/index.js";
+
 
 createRoot(document.getElementById("root")).render(
  

@@ -46,6 +46,7 @@ function getModeLabel(mode?: string, lang?: string) {
     if (normalized === "member") return "fer-se soci";
     if (normalized === "volunteer") return "fer voluntariat";
     if (normalized === "donation") return "fer una donacio";
+    if (normalized === "shop_request") return "demanar un producte de botiga";
     return "enviar una sollicitud";
   }
 
@@ -54,6 +55,7 @@ function getModeLabel(mode?: string, lang?: string) {
   if (normalized === "member") return "hacerse socio";
   if (normalized === "volunteer") return "hacer voluntariado";
   if (normalized === "donation") return "hacer una donacion";
+  if (normalized === "shop_request") return "pedir un producto de tienda";
   return "enviar una solicitud";
 }
 
@@ -77,7 +79,7 @@ Deno.serve(async (req: Request) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const senderEmail = Deno.env.get("INQUIRY_SENDER_EMAIL") || "onboarding@resend.dev";
     const recipientsRaw = Deno.env.get("INQUIRY_RECIPIENTS") ||
-      "websosmaullidos@gmai.com,sos.maullidos@gmail.com";
+      "webbolboretasvalu@gmai.com,sos.maullidos@gmail.com";
 
     if (!resendApiKey) {
       return new Response(
@@ -107,10 +109,10 @@ Deno.serve(async (req: Request) => {
     const modeLabel = getModeLabel(payload.mode, payload.lang);
     const person = escapeHtml(payload.name || "Una persona");
     const catName = escapeHtml(payload.cat_name || "un gato");
-    const subject = `SOS Maullidos: ${person} quiere ${modeLabel}`;
+    const subject = `Bolboretas & Valu: ${person} quiere ${modeLabel}`;
 
     const html = `
-      <h2>Hola SOS Maullidos,</h2>
+      <h2>Hola Bolboretas & Valu,</h2>
       <p><strong>${person}</strong> quiere <strong>${escapeHtml(modeLabel)}</strong>${payload.cat_name ? ` a <strong>${catName}</strong>` : ""}.</p>
       <hr />
       <p><strong>Nombre:</strong> ${person}</p>
@@ -170,3 +172,4 @@ Deno.serve(async (req: Request) => {
     );
   }
 });
+

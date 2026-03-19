@@ -2,43 +2,20 @@
   position: sticky;
   top: 0;
   z-index: 1002;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(45, 39, 34, 0.08);
 }
 
 .nav-inner {
-  max-width: 1120px;
+  width: min(96%, 1260px);
   margin: 0 auto;
-  padding: 12px 18px;
-  min-height: 72px;
-  display: flex;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: auto auto;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0;
 }
-
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-  flex-wrap: wrap;
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  align-self: flex-start;
-}
-
-.nav-drawer {
-  flex-basis: 100%;
-}
-
-/* ============ BRAND ============ */
 
 .brand {
   display: inline-flex;
@@ -47,428 +24,131 @@
 }
 
 .brand-logo {
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 42px;
   object-fit: contain;
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-  border-radius: 0;
 }
-
-/* ============ HAMBURGER ============ */
 
 .hamburger {
-  background: transparent;
-  border: 0;
-  display: flex;
+  justify-self: end;
+  display: inline-flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 10px;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 8px;
   cursor: pointer;
-  border-radius: 14px;
-  transition: background 0.18s ease;
-}
-
-.hamburger:hover {
-  background: rgba(0, 0, 0, 0.04);
 }
 
 .hamburger .bar {
   width: 22px;
   height: 2px;
-  background: rgba(10, 10, 10, 0.72);
-  border-radius: 2px;
-  transition: transform 0.25s ease, opacity 0.2s ease;
+  background: #28211c;
+  border-radius: 999px;
 }
-
-.hamburger.is-open .bar:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.hamburger.is-open .bar:nth-child(2) {
-  opacity: 0;
-}
-
-.hamburger.is-open .bar:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-/* ============ MOBILE MENU (legacy drawer, backup) ============
-.links {
-  position: fixed;
-  top: 72px;
-  left: 12px;
-  width: min(320px, calc(100vw - 24px));
-  max-height: calc(100vh - 84px);
-  overflow: auto;
-
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(14px);
-  border-radius: 18px;
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 18px 50px rgba(0,0,0,0.16);
-
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-16px);
-
-  transition: transform 0.25s ease, opacity 0.2s ease;
-  z-index: 1001;
-}
-
-.links.open {
-  max-height: 500px;
-  opacity: 1;
-  transform: translateY(0);
-
-  background: rgba(255,255,255,0.94);
-  backdrop-filter: blur(14px);
-
-  width: 150px;
-  max-width: 280px;
-  margin: 0 auto;
-
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-}
-*/
-
-/* ============ MOBILE MENU (push-down) ============ */
 
 .links {
-  position: static;
-  width: 100%;
+  grid-column: 1 / -1;
   max-height: 0;
   overflow: hidden;
-
-  opacity: 0;
-  pointer-events: auto;
-  transform: translateY(-8px);
-
-  margin-top: 0;
-
-  background: transparent;
-  backdrop-filter: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-
-  transition: max-height 0.34s ease, opacity 0.24s ease, transform 0.24s ease,
-    margin-top 0.24s ease;
-  z-index: auto;
+  transition: max-height 0.28s ease;
 }
 
 .links.open {
-  max-height: 700px;
-  overflow: visible;
-  opacity: 1;
-  transform: translateY(0);
-  margin-top: 8px;
+  max-height: 420px;
 }
 
 .links-inner {
   display: flex;
   flex-direction: column;
-  padding: 18px 16px 22px;
-  gap: 10px;
-  width: 100%;
-  max-width: 340px;
-  margin: 0 auto;
+  gap: 4px;
+  padding: 4px 0 12px;
 }
-
-/* ============ MENU ITEMS ============ */
 
 .nav-item {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  font-size: 17px;
-  padding: 12px 12px;
+  padding: 12px 2px;
   text-decoration: none;
-  font-weight: 620;
-  color: rgba(0, 0, 0, 0.78);
-  border-radius: 14px;
-  transition: background 0.16s ease, color 0.16s ease;
-
-  width: 100%;
-  justify-content: center;
-  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #2d2722;
+  font-size: 0.95rem;
 }
 
-.nav-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.92);
-}
-
-.nav-item::after {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 6px;
-  height: 2px;
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.72);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.18s ease;
+.nav-icons {
   display: none;
 }
 
-.nav-item.is-active::after {
-  transform: scaleX(1);
-}
-
-/* ============ CTA + DROPDOWN ============ */
-
-.dropdown {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.drop-btn {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.03);
-  color: rgba(0, 0, 0, 0.86);
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
+.nav-iconLink {
+  width: 38px;
+  height: 38px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease,
-    border-color 0.18s ease;
-  font-size: 17px;
-  padding: 12px 16px;
-  width: 100%;
   justify-content: center;
-  white-space: nowrap;
+  color: #2d2722;
 }
 
-.drop-btn:hover {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.14);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+.nav-iconLink svg {
+  width: 21px;
+  height: 21px;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  fill: none;
 }
 
-.caret {
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid rgba(0, 0, 0, 0.55);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.55);
-  transform: rotate(45deg);
-  margin-top: -2px;
-  transition: transform 0.18s ease;
-}
-
-.drop-btn[aria-expanded="true"] .caret {
-  transform: rotate(-135deg);
-}
-
-.drop-panel {
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 10px;
-}
-
-.drop-panel.open {
-  display: flex;
-}
-
-.drop-item {
-  text-decoration: none;
-  color: rgba(0, 0, 0, 0.82);
-  padding: 10px 12px;
-  border-radius: 12px;
-  transition: background 0.16s ease;
-}
-
-.drop-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-@media (max-width: 1023px) {
-  .dropdown {
-    position: relative;
-  }
-
-  .links-inner {
-    overflow: visible;
-  }
-
-  .drop-panel {
-    position: absolute;
-    top: 0;
-    left: calc(100% + 10px);
-    min-width: 220px;
-    padding: 10px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);
-    z-index: 20;
-  }
-}
-
-/* ============ OVERLAY ============
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10,10,10,0.22);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 1000;
-}
-
-.overlay.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-*/
-
-.overlay {
-  display: none;
-}
-
-/* ============ DESKTOP ============ */
-
-@media (min-width: 1024px) {
+@media (min-width: 980px) {
   .nav-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 12px 18px;
-    min-height: 72px;
-
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .nav-item::after {
-    display: block;
-  }
-
-  .nav-item.is-active::after {
-    transform: scaleX(1);
+    grid-template-columns: auto 1fr auto;
+    gap: 26px;
+    min-height: 82px;
   }
 
   .hamburger {
     display: none;
   }
 
-  .brand-logo {
-    transform: none;
-  width: 84px;
-  height: 84px;
-  }
-
-  .brand {
-    flex: 0 0 auto;
-  }
-
-  .nav-drawer {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
   .links {
-    position: static;
-    width: 100%;
-    min-width: 0;
+    grid-column: auto;
     max-height: none;
     overflow: visible;
-    background: transparent;
-    backdrop-filter: none;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    margin-right: 0;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-    transition: none;
-    padding-left: 0;
-    justify-self: auto;
-    z-index: auto;
   }
 
   .links-inner {
     flex-direction: row;
     align-items: center;
-    justify-content: flex-end;
-    gap: 14px;
+    justify-content: center;
+    gap: 38px;
     padding: 0;
-    flex-wrap: nowrap;
-    white-space: nowrap;
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    margin: 0;
   }
 
   .nav-item {
-    width: auto;
-    justify-content: center;
-    text-align: center;
-    flex: 0 0 auto;
+    position: relative;
+    padding: 8px 0;
+    font-size: 0.98rem;
   }
 
-  .nav-left {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    flex: 1 1 auto;
-    min-width: 0;
-    flex-wrap: nowrap;
+  .nav-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -10px;
+    height: 1px;
+    background: #2d2722;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.18s ease;
   }
 
-  .nav-right {
-    flex: 0 0 auto;
-    align-self: center;
-    margin-left: 8px;
-  }
-
-  .nav-item:hover::after {
+  .nav-item:hover::after,
+  .nav-item.active::after {
     transform: scaleX(1);
   }
 
-  .dropdown {
-    position: relative;
-    width: auto;
-    flex: 0 0 auto;
-  }
-
-  .drop-btn {
-    width: auto;
-  }
-
-  .drop-panel {
-    display: none;
-    position: absolute;
-    top: calc(100% + 12px);
-    left: 0;
-    min-width: 250px;
-    padding: 10px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.86);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 20px 46px rgba(0, 0, 0, 0.14);
-  }
-
-  .drop-panel.open {
-    display: flex;
-  }
-
-  .overlay {
-    display: none;
+  .nav-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
   }
 }

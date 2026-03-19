@@ -1,50 +1,46 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
+﻿import React from "react";
 import "../styles/contact.scss";
 
-
 export default function Contact() {
-  const { t } = useTranslation("contact");
-
   return (
     <main className="contact-page">
       <div className="container contact-page__content">
-        {/* CONTACTO DIRECTO */}
         <section className="card reveal-on-scroll" style={{ "--reveal-delay": "80ms" }}>
-          <h2>{t("contact_subtitle")}</h2>
-          <p className="muted">{t("contact_intro")}</p>
-
-          <p>
-            <strong>{t("contact_email_label")}</strong>{" "}
-            <a href="mailto:sos.maullidos@gmail.com">
-              sos.maullidos@gmail.com
-            </a>
+          <h2>Contacto directo</h2>
+          <p className="muted">
+            Si necesitas informacion sobre un producto, una categoria o una peticion
+            especial, puedes escribirnos por aqui.
           </p>
 
           <p>
-            <strong>{t("contact_whatsapp_label")}</strong>{" "}
+            <strong>Email</strong>{" "}
+            <a href="mailto:info@bolboretasvalu.com">info@bolboretasvalu.com</a>
+          </p>
+
+          <p>
+            <strong>Instagram</strong>{" "}
             <a
-              href="https://wa.me/34644359005"
+              href="https://www.instagram.com/bolboretasvalu/"
               target="_blank"
               rel="noopener noreferrer"
             >
-              +34 644 359 605
+              @bolboretasvalu
             </a>
           </p>
         </section>
 
-        {/* SI ENCUENTRAS UN GATO */}
         <section className="card reveal-on-scroll" style={{ "--reveal-delay": "180ms" }}>
-          <h2>{t("rescue_title")}</h2>
-          <p className="muted">{t("rescue_intro")}</p>
+          <h2>Atencion personalizada</h2>
+          <p className="muted">
+            La tienda esta preparada para recibir consultas por talla, prenda o
+            disponibilidad directamente desde cada producto.
+          </p>
 
           <ul className="secondary-list">
-            <li>{t("rescue_step_1")}</li>
-            <li>{t("rescue_step_2")}</li>
-            <li>{t("rescue_step_3")}</li>
+            <li>Consulta primero el producto que mas se aproxime a lo que buscas.</li>
+            <li>Usa el formulario situado debajo para indicar talla o variante.</li>
+            <li>La propietaria revisara la solicitud y respondera segun disponibilidad.</li>
           </ul>
-
-          <p className="muted">{t("rescue_note")}</p>
         </section>
       </div>
     </main>

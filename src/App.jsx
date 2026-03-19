@@ -1,37 +1,27 @@
-﻿import React from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Nav from "./components/Nav/Nav";
 import Footer from "./components/Footer/Footer";
 import CookieBanner from "./components/CookieBanner/CookieBanner";
 import ScrollToTop from "./components/ScrollToTop";
-import PostDetail from "./pages/PostDetail";
-import Donate from "./pages/Donate";
-import Home from "./pages/Home";
-import Adoption from "./pages/Adoption";
-import Cases from "./pages/Cases";
-import News from "./pages/News";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
-import Blog from "./pages/Blog";
+import Privacy from "./pages/Privacy";
+import Shop from "./pages/Shop";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Login from "./pages/admin/Login";
-import Cats from "./pages/admin/Cats";
-import Posts from "./pages/admin/Posts";
-import CatForm from "./pages/admin/CatForm";
-import PostForm from "./pages/admin/PostForm";
-import CatDetail from "./pages/CatDetail";
-import Volunteer from "./pages/Volunteer";
-import Shop from "./pages/Shop";
-import Story from "./pages/Story";
-import LatestAdopted from "./pages/LatestAdopted";
-import Privacy from "./pages/Privacy";
+import ShopCategories from "./pages/admin/ShopCategories";
+import ShopCategoryForm from "./pages/admin/ShopCategoryForm";
+import ShopProducts from "./pages/admin/ShopProducts";
+import ShopProductForm from "./pages/admin/ShopProductForm";
+import ProductDetail from "./pages/ProductDetail";
 
 function SiteLayout() {
   return (
     <div className="app">
-      <Nav />
       <ScrollToTop />
+      <Nav />
       <Outlet />
       <Footer />
       <CookieBanner />
@@ -42,37 +32,26 @@ function SiteLayout() {
 export default function App() {
   return (
     <Routes>
-      {/* ADMIN: sin Nav/Footer */}
+      <Route path="/" element={<SiteLayout />}>
+        <Route index element={<Shop />} />
+        <Route path="tienda" element={<Shop />} />
+        <Route path="producto/:slug" element={<ProductDetail />} />
+        <Route path="quienes-somos" element={<About />} />
+        <Route path="contacto" element={<Contact />} />
+        <Route path="privacidad" element={<Privacy />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+
       <Route path="/admin/login" element={<Login />} />
 
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
-        <Route path="cats" element={<Cats />} />
-        <Route path="cats/new" element={<CatForm />} />
-        <Route path="cats/:id/edit" element={<CatForm />} />
-        <Route path="posts" element={<Posts />} />
-        <Route path="posts/new" element={<PostForm />} />
-        <Route path="posts/:id/edit" element={<PostForm />} />
-      </Route>
-
-      {/* PUBLICO: con Nav/Footer */}
-      <Route path="/" element={<SiteLayout />}>
-        <Route index element={<Home />} />
-        <Route path="adopcion" element={<Adoption />} />
-        <Route path="blog" element={<Blog />} />
-        <Route path="casos-dificiles" element={<Cases />} />
-        <Route path="ultimos-adoptados" element={<LatestAdopted />} />
-        <Route path="noticias" element={<News />} />
-        <Route path="noticias/:id" element={<PostDetail />} />
-        <Route path="blog/:id" element={<PostDetail />} />
-        <Route path="quienes-somos" element={<About />} />
-        <Route path="contacto" element={<Contact />} />
-        <Route path="donar" element={<Donate />} />
-        <Route path="voluntariat" element={<Volunteer />} />
-        <Route path="compras-solidarias" element={<Shop />} />
-        <Route path="adopcion/:id" element={<CatDetail />} />
-        <Route path="historias/:slug" element={<Story />} />
-        <Route path="privacidad" element={<Privacy />} />
+        <Route path="categorias" element={<ShopCategories />} />
+        <Route path="categorias/nueva" element={<ShopCategoryForm />} />
+        <Route path="categorias/:id/editar" element={<ShopCategoryForm />} />
+        <Route path="productos" element={<ShopProducts />} />
+        <Route path="productos/nuevo" element={<ShopProductForm />} />
+        <Route path="productos/:id/editar" element={<ShopProductForm />} />
       </Route>
     </Routes>
   );

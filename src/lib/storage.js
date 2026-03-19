@@ -1,9 +1,17 @@
 import { supabase } from "./supabaseClient";
 import { resizeImageFile } from "../utils/imageResize";
 
-const BUCKET = import.meta.env.VITE_SUPABASE_BUCKET || "cats";
+const BUCKET =
+  import.meta.env.VITE_STORE_SUPABASE_BUCKET ||
+  import.meta.env.VITE_SHOP_SUPABASE_BUCKET ||
+  import.meta.env.VITE_SUPABASE_BUCKET ||
+  "store-assets";
 
 export async function uploadImageFile(file, folder = "uploads") {
+  if (!supabase) {
+    throw new Error("Supabase client not configured");
+  }
+
   const resized = await resizeImageFile(file, 1200, 0.7);
   const fileName = `${folder}/${Date.now()}-${
     crypto?.randomUUID?.() || Math.random().toString(36).slice(2)

@@ -1,67 +1,62 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
+﻿import React from "react";
 import "../styles/about.scss";
 
-
 export default function About() {
-  const { t } = useTranslation("about");
-
   return (
     <main className="container about">
-
       <section className="about-hero reveal-on-scroll" style={{ "--reveal-delay": "60ms" }}>
-        <p className="about-claim">{t("claim")}</p>
-        
-        <p className="about-intro">{t("intro")}</p>
+        <p className="about-claim">Moda, hogar y detalles con sensibilidad propia.</p>
+        <p className="about-intro">
+          Bolboretas & Valu es una tienda online centrada en ropa, complementos y textil
+          para mujer, hombre, bebes, infantil-juvenil y hogar.
+        </p>
 
         <img
-          src="/images/colonia.jpg"
-          alt={t("image_alt")}
+          src="/images/logo.png"
+          alt="Bolboretas & Valu"
           className="about-image"
         />
-        <p className="about-caption">{t("image_caption")}</p>
+        <p className="about-caption">
+          Selección y atención cercana para construir un catalogo cuidado.
+        </p>
       </section>
 
       <section className="about-section reveal-on-scroll" style={{ "--reveal-delay": "140ms" }}>
-        <h2>{t("who_title")}</h2>
-        <p>{t("who_text_1")}</p>
-        <p>{t("who_text_2")}</p>
-        <p>{t("who_text_3")}</p>
+        <h2>Que ofrecemos</h2>
+        <p>
+          La tienda se organiza por categorias claras para que la propietaria pueda
+          gestionar el catalogo con autonomia y mantener cada seccion actualizada.
+        </p>
+        <p>
+          Ademas del producto publicado, cada ficha permite recibir peticiones directas
+          por talla, prenda o variante similar.
+        </p>
       </section>
 
       <section className="about-section reveal-on-scroll" style={{ "--reveal-delay": "220ms" }}>
-        <h2>{t("mission_title")}</h2>
-
+        <h2>Nuestra forma de trabajar</h2>
         <ul className="about-list">
           <li>
-            <strong>{t("mission_1_title")}</strong>
-            <p>{t("mission_1_text")}</p>
+            <strong>Catalogo ordenado</strong>
+            <p>Categorias base para crecer sin mezclar colecciones ni tipos de producto.</p>
           </li>
 
           <li>
-            <strong>{t("mission_2_title")}</strong>
-            <p>{t("mission_2_text")}</p>
+            <strong>Atencion directa</strong>
+            <p>
+              Formulario bajo cada producto para resolver necesidades concretas sin perder
+              el contexto del articulo.
+            </p>
           </li>
 
           <li>
-            <strong>{t("mission_3_title")}</strong>
-            <p>{t("mission_3_text")}</p>
-          </li>
-
-          <li>
-            <strong>{t("mission_4_title")}</strong>
-            <p>{t("mission_4_text")}</p>
+            <strong>Gestion sencilla</strong>
+            <p>
+              La propietaria podra cargar producto real desde el panel que se prepare para
+              la tienda.
+            </p>
           </li>
         </ul>
-      </section>
-
-      <section className="about-section reveal-on-scroll" style={{ "--reveal-delay": "300ms" }}>
-        <h2>{t("support_title")}</h2>
-        <p>{t("support_text")}</p>
-      </section>
-
-      <section className="about-section about-highlight reveal-on-scroll" style={{ "--reveal-delay": "380ms" }}>
-        <p>{t("transparency")}</p>
       </section>
     </main>
   );

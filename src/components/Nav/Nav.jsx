@@ -1,200 +1,101 @@
-import React, { useState, useEffect, useRef } from "react";
-import { NavLink, Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import LanguageSelector from "../LanguageSelector/LanguageSelector";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import "./nav.scss";
 
+const categoryLinks = [
+  { to: "/categoria/mujer", label: "Mujer" },
+  { to: "/categoria/hombre", label: "Hombre" },
+  { to: "/categoria/bebes", label: "Bebé" },
+  { to: "/categoria/infantil", label: "Infantil" },
+  { to: "/categoria/hogar", label: "Hogar" },
+  { to: "/categoria/otros", label: "Otros" },
+  { to: "/categoria/outlet", label: "Outlet" },
+];
+
+
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l4.5 4.5" />
+    </svg>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="9" cy="20" r="1.25" />
+      <circle cx="18" cy="20" r="1.25" />
+      <path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.76L21 7H7.4" />
+    </svg>
+  );
+}
+
 export default function Nav() {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [catsOpen, setCatsOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const catsRef = useRef(null);
-  const helpRef = useRef(null);
+  const location = useLocation();
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        setCatsOpen(false);
-        setHelpOpen(false);
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    const onClickOutside = (e) => {
-      if (catsRef.current && !catsRef.current.contains(e.target)) {
-        setCatsOpen(false);
-      }
-      if (helpRef.current && !helpRef.current.contains(e.target)) {
-        setHelpOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
-  const closeAll = () => {
     setOpen(false);
-    setCatsOpen(false);
-    setHelpOpen(false);
-  };
-
-  const navClass = ({ isActive }) => `nav-item ${isActive ? "is-active" : ""}`;
+  }, [location.pathname]);
 
   return (
     <header className="nav">
       <div className="nav-inner">
-        <div className="nav-left">
-          <Link to="/" className="brand" aria-label={t("brand")}>
-            <img
-              src="/images/logo_transp.png"
-              alt={t("brand")}
-              className="brand-logo"
-            />
-          </Link>
-          <div className="nav-drawer">
-            <nav id="main-menu" className={`links ${open ? "open" : ""}`}>
-              <div className="links-inner">
-                <NavLink to="/" className={navClass} onClick={closeAll} end>
-                  {t("home")}
-                </NavLink>
+        
+        <Link to="/" className="brand" aria-label="Bolboretas & Valu">
+          <img
+            src="/images/logo.png"
+            alt="Bolboretas & Valu"
+            className="brand-logo"
+          />
+        </Link>
 
-                <NavLink
-                  to="/blog"
-                  className={navClass}
-                  onClick={closeAll}
-                >
-                  {t("blog")}
-                </NavLink>
+        <button
+          className={`hamburger ${open ? "is-open" : ""}`}
+          aria-label={open ? "Cerrar menu" : "Abrir menu"}
+          aria-expanded={open}
+          aria-controls="main-menu"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="bar" />
+          <span className="bar" />
+          <span className="bar" />
+        </button>
 
-                <NavLink to="/noticias" className={navClass} onClick={closeAll}>
-                  {t("news")}
-                </NavLink>
-
-                <NavLink
-                  to="/quienes-somos"
-                  className={navClass}
-                  onClick={closeAll}
-                >
-                  {t("about")}
-                </NavLink>
-
-                <NavLink to="/contacto" className={navClass} onClick={closeAll}>
-                  {t("contact")}
-                </NavLink>
-
-                <div className="dropdown" ref={catsRef}>
-                  <button
-                    className="drop-btn nav-cta"
-                    aria-haspopup="true"
-                    aria-expanded={catsOpen}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCatsOpen((v) => !v);
-                    }}
-                  >
-                    {t("cats")} <span className="caret" aria-hidden="true" />
-                  </button>
-
-                  <div className={`drop-panel ${catsOpen ? "open" : ""}`}>
-                    <NavLink
-                      to="/adopcion"
-                      className="drop-item"
-                      onClick={closeAll}
-                    >
-                      {t("cats_adoption")}
-                    </NavLink>
-
-                    <NavLink
-                      to="/casos-dificiles"
-                      className="drop-item"
-                      onClick={closeAll}
-                    >
-                      {t("cats_special_cases")}
-                    </NavLink>
-
-                    <NavLink
-                      to="/ultimos-adoptados"
-                      className="drop-item"
-                      onClick={closeAll}
-                    >
-                      {t("cats_latest_adopted")}
-                    </NavLink>
-                  </div>
-                </div>
-
-                {/* COM AJUDAR (dropdown) */}
-                <div className="dropdown" ref={helpRef}>
-                  <button
-                    className="drop-btn nav-cta"
-                    aria-haspopup="true"
-                    aria-expanded={helpOpen}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setHelpOpen((v) => !v);
-                    }}
-                  >
-                    {t("cta_how_help")} <span className="caret" aria-hidden="true" />
-                  </button>
-
-                  <div className={`drop-panel ${helpOpen ? "open" : ""}`}>
-                    <NavLink
-                      to="/donar"
-                      className="drop-item"
-                      onClick={closeAll}
-                    >
-                      {t("help_donate")}
-                    </NavLink>
-
-                    <NavLink
-                      to="/compras-solidarias"
-                      className="drop-item"
-                      onClick={closeAll}
-                    >
-                      {t("help_shop")}
-                    </NavLink>
-
-                    <NavLink
-                      to="/voluntariat"
-                      className="drop-item"
-                      onClick={closeAll}
-                    >
-                      {t("help_volunteer")}
-                    </NavLink>
-                  </div>
-                </div>
-
-
-
-              </div>
-            </nav>
+        <nav id="main-menu" className={`links ${open ? "open" : ""}`}>
+          <div className="links-inner">
+            {categoryLinks.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className="nav-item"
+              >
+                {item.label}
+              </NavLink>
+            ))}
           </div>
-        </div>
+        </nav>
 
-        <div className="nav-right">
-          <LanguageSelector />
-          <button
-            className={`hamburger ${open ? "is-open" : ""}`}
-            aria-label={open ? t("close_menu") : t("open_menu")}
-            aria-expanded={open}
-            aria-controls="main-menu"
-            onClick={() => setOpen((v) => !v)}
+        <div className="nav-icons" aria-label="Acciones">
+          <Link
+            to="/buscar"
+            className="nav-iconLink"
+            aria-label="Buscar productos"
           >
-            <span className="bar" />
-            <span className="bar" />
-            <span className="bar" />
-          </button>
-        </div>
+            <SearchIcon />
+          </Link>
 
-        <div
-          className={`overlay ${open ? "show" : ""}`}
-          onClick={closeAll}
-          aria-hidden={!open}
-        />
+          <Link
+            to="/carrito"
+            className="nav-iconLink"
+            aria-label="Ver carrito"
+          >
+            <CartIcon />
+          </Link>
+        </div>
       </div>
     </header>
   );

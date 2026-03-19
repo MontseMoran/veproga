@@ -1,11 +1,11 @@
-# SOS Maullidos
+# Bolboretas & Valu Shop
 
 Proyecto web para una asociación que rescata, cuida y busca hogar para gatos.
 La web está orientada a dar visibilidad a los animales, facilitar la adopción y activar la colaboración de la comunidad.
 
 ## Objetivo
 
-SOS Maullidos trabaja en rescate, atención veterinaria, acogidas y adopciones responsables.
+Bolboretas & Valu impulsa una tienda online de ropa y complementos.
 Este proyecto centraliza esa actividad en un sitio público y en un panel interno de gestión.
 
 ## Partes visibles (web pública)
@@ -37,3 +37,16 @@ Este proyecto centraliza esa actividad en un sitio público y en un panel intern
 - Prioriza claridad y accesibilidad para cualquier persona que quiera ayudar.
 - Mantiene separada la parte pública de la gestión interna.
 - Está pensado para evolucionar con las necesidades reales de la asociación.
+
+## Separación Supabase para tienda
+
+Si esta copia se reutiliza como tienda independiente (ej. Bolboretas & Valu), no debe compartir base de datos con otros proyectos.
+
+- Proyecto original (protectora):
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+- Proyecto nuevo (tienda):
+  - `VITE_SHOP_SUPABASE_URL`
+  - `VITE_SHOP_SUPABASE_ANON_KEY`
+
+Esquema inicial de tienda disponible en `supabase.shop.sql`.
