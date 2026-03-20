@@ -48,7 +48,13 @@ const CATEGORY_PRESETS = {
     accent: "stone",
   },
 };
-
+const CATEGORY_IMAGES = {
+  mujer: "/images/mujer.png",
+  hombre: "/images/hombre.png",
+  bebes: "/images/bebe.png",
+  infantil: "/images/infantil-juvenil.png",
+  hogar: "/images/hogar.png"
+};
 const FALLBACK_CATEGORIES = [
   { slug: "mujer", name: "Mujer", description: "Moda, bolsos y zapatos" },
   { slug: "hombre", name: "Hombre", description: "Ropa, zapatillas y moda casual" },
@@ -69,6 +75,43 @@ const COPY = {
   requestHint: "No encuentras lo que buscas?",
   cta: "Ver producto",
 };
+const HOME_CATEGORIES = [
+  {
+    slug: "mujer",
+    name: "Mujer",
+    description: "Moda, bolsos y zapatos",
+    accent: "rose",
+    imageUrl: "/images/mujer.png",
+  },
+  {
+    slug: "hombre",
+    name: "Hombre",
+    description: "Ropa, zapatillas y moda casual",
+    accent: "stone",
+    imageUrl: "/images/hombre.png",
+  },
+  {
+    slug: "bebes",
+    name: "Bebé",
+    description: "Ropa, canastillas y primeras puestas",
+    accent: "sky",
+    imageUrl: "/images/bebe.png",
+  },
+  {
+    slug: "infantil",
+    name: "Infantil juvenil",
+    description: "Ropa y calzado infantil",
+    accent: "sky",
+    imageUrl: "/images/infantil-juvenil.png",
+  },
+  {
+    slug: "hogar",
+    name: "Hogar",
+    description: "Textiles y detalles para casa",
+    accent: "linen",
+    imageUrl: "/images/hogar.png",
+  },
+];
 
 function normalizeCategory(raw) {
   const preset = CATEGORY_PRESETS[raw.slug] || {};
@@ -81,27 +124,11 @@ function normalizeCategory(raw) {
     accent: preset.accent || "rose",
     collectionLabel: preset.collectionLabel || raw.name || raw.slug,
     sortOrder: raw.sort_order || 0,
+    imageUrl: CATEGORY_IMAGES[raw.slug] || "",
   };
 }
 
-function buildCategoryCards(categories, products) {
-  const mainSlugs = ["mujer", "hombre", "bebes", "hogar"];
 
-  return mainSlugs
-    .map((slug) => {
-      const category = categories.find((item) => item.slug === slug) || null;
-      const imageUrl =
-        products.find((item) => item.categories.some((cat) => cat.slug === slug))?.imageUrl || "";
-
-      if (!category) return null;
-
-      return {
-        ...category,
-        imageUrl,
-      };
-    })
-    .filter(Boolean);
-}
 
 function buildCollectionCards(categories, products) {
   const collectionSlugs = ["infantil", "otros", "outlet"];
@@ -234,10 +261,7 @@ export default function Shop() {
     };
   }, []);
 
-  const categoryCards = useMemo(
-    () => buildCategoryCards(categories, products),
-    [categories, products]
-  );
+
 
   const featuredProducts = useMemo(() => products.slice(0, 5), [products]);
 
@@ -265,7 +289,7 @@ export default function Shop() {
           </div>
 
           <div className="shop__categoryGrid">
-            {categoryCards.map((category) => (
+            {HOME_CATEGORIES.map((category) => (
               <Link
                 key={category.slug}
                 to={`/categoria/${category.slug}`}
