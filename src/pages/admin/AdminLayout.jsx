@@ -109,7 +109,7 @@ export default function AdminLayout() {
   return (
     <div className="admin-shell">
       <aside className="admin-aside">
-        <h3 className="admin-title">Panel de administracion</h3>
+        <h3 className="admin-title">Panel de administración</h3>
 
         <nav className="admin-links">
           <NavLink to="/admin" end className={({ isActive }) => `admin-link ${isActive ? "is-active" : ""}`}>
@@ -117,11 +117,11 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink to="categorias" className={({ isActive }) => `admin-link ${isActive ? "is-active" : ""}`}>
-            Categorias
+            Categorías
           </NavLink>
 
           <NavLink to="subcategorias" className={({ isActive }) => `admin-link ${isActive ? "is-active" : ""}`}>
-            Subcategorias
+            Subcategorías
           </NavLink>
 
           <NavLink to="productos" className={({ isActive }) => `admin-link ${isActive ? "is-active" : ""}`}>
@@ -137,7 +137,7 @@ export default function AdminLayout() {
             nav("/admin/login", { replace: true });
           }}
         >
-          Cerrar sesion
+          Cerrar sesión
         </button>
       </aside>
 

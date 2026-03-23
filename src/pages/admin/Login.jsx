@@ -44,7 +44,7 @@ export default function Login() {
       <div className="admin-auth__card">
         <h1 className="admin-auth__title">Acceso al panel</h1>
         <p className="admin-auth__subtitle">
-          Introduce el usuario y la contrasena de administracion.
+          Introduce el usuario y la contraseña de administración.
         </p>
 
         <form className="admin-auth__form" onSubmit={handleLogin}>
@@ -57,7 +57,7 @@ export default function Login() {
             required
           />
 
-          <label className="admin-auth__label">Contrasena</label>
+          <label className="admin-auth__label">Contraseña</label>
           <div className="admin-auth__passwordWrap">
             <input
               className="admin-auth__input admin-auth__input--password"
@@ -71,7 +71,7 @@ export default function Login() {
               type="button"
               className="admin-auth__passwordToggle"
               onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               aria-pressed={showPassword}
             >
               {showPassword ? (

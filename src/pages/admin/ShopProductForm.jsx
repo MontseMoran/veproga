@@ -51,7 +51,14 @@ export default function ShopProductForm() {
   const [saving, setSaving] = useState(false);
 
   const imagePreviewUrls = useMemo(
-    () => imageFiles.map((file) => URL.createObjectURL(file)),
+    () =>
+      imageFiles.map((file) => {
+        try {
+          return URL.createObjectURL(file);
+        } catch {
+          return "";
+        }
+      }),
     [imageFiles]
   );
   const availableSubcategories = useMemo(
@@ -275,7 +282,7 @@ export default function ShopProductForm() {
     setImagePickerMessage(
       `${newFiles.length} imagen${newFiles.length === 1 ? "" : "es"} añadida${
         newFiles.length === 1 ? "" : "s"
-      }.`
+      }: ${newFiles.map((file) => file.name || "imagen").join(", ")}`
     );
   }
 
@@ -591,6 +598,7 @@ export default function ShopProductForm() {
               multiple
               accept="image/*"
               onChange={handleImageInputChange}
+              onInput={handleImageInputChange}
             />
             {imagePickerMessage ? (
               <p className="shop-product-form__helper">
@@ -691,11 +699,17 @@ export default function ShopProductForm() {
                       {index === 0 ? (
                         <span className="admin-image-badge">Principal</span>
                       ) : null}
-                      <img
-                        src={imagePreviewUrls[index]}
-                        alt={`Nueva imagen ${index + 1}`}
-                        className="admin-image-preview__img"
-                      />
+                      {imagePreviewUrls[index] ? (
+                        <img
+                          src={imagePreviewUrls[index]}
+                          alt={`Nueva imagen ${index + 1}`}
+                          className="admin-image-preview__img"
+                        />
+                      ) : (
+                        <div className="admin-image-preview__fallback">
+                          <span>{file.name || `Imagen ${index + 1}`}</span>
+                        </div>
+                      )}
                       <div className="admin-image-actions">
                         <button
                           type="button"
