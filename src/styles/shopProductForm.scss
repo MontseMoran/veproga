@@ -88,7 +88,7 @@
   grid-column: 1 / -1;
   display: grid;
   gap: 18px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   align-items: start;
   min-width: 0;
 }
@@ -203,6 +203,10 @@ grid-template-columns: repeat(auto-fill, minmax(92px, 92px));
 }
 
 @media (min-width: 700px) {
+  .shop-product-form__images-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .shop-product-form__variantCard {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: end;

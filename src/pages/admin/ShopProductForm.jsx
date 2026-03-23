@@ -569,6 +569,12 @@ export default function ShopProductForm() {
                 event.target.value = "";
               }}
             />
+            {imageFiles.length > 0 ? (
+              <p className="shop-product-form__helper">
+                {imageFiles.length} imagen{imageFiles.length === 1 ? "" : "es"} seleccionada
+                {imageFiles.length === 1 ? "" : "s"}.
+              </p>
+            ) : null}
           </div>
 
           <div className="full">
