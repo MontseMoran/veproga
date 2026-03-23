@@ -155,19 +155,6 @@
   font-size: 1.05rem;
 }
 
-.admin-brand {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-
-.admin-brand__logo {
-  width: min(132px, 100%);
-  height: auto;
-  display: block;
-  object-fit: contain;
-}
-
 .admin-links {
   display: grid;
   gap: 8px;

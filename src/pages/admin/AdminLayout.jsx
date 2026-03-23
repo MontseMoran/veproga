@@ -109,10 +109,6 @@ export default function AdminLayout() {
   return (
     <div className="admin-shell">
       <aside className="admin-aside">
-        <a href="/" className="admin-brand" aria-label="Ir a la web pública">
-          <img src="/images/logo.png" alt="Bolboretas & Valu" className="admin-brand__logo" />
-        </a>
-
         <h3 className="admin-title">Panel de administración</h3>
 
         <nav className="admin-links">
