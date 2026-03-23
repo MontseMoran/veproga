@@ -1,10 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
 export default function ShopProducts() {
   const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
+  const [subcategoriesReady, setSubcategoriesReady] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  const filteredSubcategories = useMemo(() => {
+    if (!selectedCategoryId) {
+      return subcategories;
+    }
+
+    return subcategories.filter((subcategory) => subcategory.category_id === selectedCategoryId);
+  }, [selectedCategoryId, subcategories]);
+
+  const visibleItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesCategory =
+        !selectedCategoryId ||
+        item.categoryIds.some((categoryId) => categoryId === selectedCategoryId);
+
+      const matchesSubcategory =
+        !selectedSubcategoryId ||
+        item.subcategories.some((subcategory) => subcategory.id === selectedSubcategoryId);
+
+      return matchesCategory && matchesSubcategory;
+    });
+  }, [items, selectedCategoryId, selectedSubcategoryId]);
 
   useEffect(() => {
     let active = true;
@@ -16,6 +43,8 @@ export default function ShopProducts() {
           { data: relationsData, error: relationsError },
           { data: categoriesData, error: categoriesError },
           { data: imagesData, error: imagesError },
+          { data: subcategoriesData, error: subcategoriesError },
+          { data: productSubcategoriesData, error: productSubcategoriesError },
         ] = await Promise.all([
           supabase
             .from("shop_products")
@@ -33,6 +62,14 @@ export default function ShopProducts() {
             .from("shop_product_images")
             .select("product_id, image_url, sort_order")
             .order("sort_order", { ascending: true }),
+
+          supabase
+            .from("shop_subcategories")
+            .select("id, category_id, name, sort_order")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true }),
+
+          supabase.from("shop_product_subcategories").select("product_id, subcategory_id"),
         ]);
 
         if (productsError) throw productsError;
@@ -63,9 +100,59 @@ export default function ShopProducts() {
           }
         });
 
+        const categoriesList = categoriesData || [];
+        let subcategoriesList = [];
+        let subcategoriesByProductId = {};
+
+        if (subcategoriesError || productSubcategoriesError) {
+          console.warn(
+            "ShopProducts subcategories warning:",
+            subcategoriesError?.message || productSubcategoriesError?.message
+          );
+
+          if (active) {
+            setCategories(categoriesList);
+            setSubcategories([]);
+            setSubcategoriesReady(false);
+            setSelectedCategoryId("");
+            setSelectedSubcategoryId("");
+          }
+        } else {
+          const subcategoriesById = Object.fromEntries(
+            (subcategoriesData || []).map((subcategory) => [subcategory.id, subcategory])
+          );
+
+          subcategoriesList = subcategoriesData || [];
+          subcategoriesByProductId = {};
+
+          (productSubcategoriesData || []).forEach((row) => {
+            const subcategory = subcategoriesById[row.subcategory_id];
+
+            if (!subcategory) {
+              return;
+            }
+
+            if (!subcategoriesByProductId[row.product_id]) {
+              subcategoriesByProductId[row.product_id] = [];
+            }
+
+            subcategoriesByProductId[row.product_id].push(subcategory);
+          });
+
+          if (active) {
+            setCategories(categoriesList);
+            setSubcategories(subcategoriesList);
+            setSubcategoriesReady(true);
+          }
+        }
+
         const normalized = (productsData || []).map((item) => ({
           ...item,
           categories: categoryNamesByProductId[item.id] || [],
+          categoryIds: (relationsData || [])
+            .filter((row) => row.product_id === item.id)
+            .map((row) => row.category_id),
+          subcategories: subcategoriesByProductId[item.id] || [],
           image_url: firstImageByProductId[item.id] || "",
         }));
 
@@ -77,6 +164,11 @@ export default function ShopProducts() {
         console.error(error);
         if (active) {
           setItems([]);
+          setCategories([]);
+          setSubcategories([]);
+          setSubcategoriesReady(false);
+          setSelectedCategoryId("");
+          setSelectedSubcategoryId("");
           setLoading(false);
         }
       }
@@ -95,8 +187,6 @@ export default function ShopProducts() {
     }
 
     try {
-      const sessionData = await supabase.auth.getSession();
-
       const { error } = await supabase.functions.invoke("delete-product", {
         body: { productId: id },
       });
@@ -120,12 +210,86 @@ export default function ShopProducts() {
         </Link>
       </div>
 
+      {!loading && categories.length > 0 ? (
+        <div className="admin-filterBar">
+          <label htmlFor="admin-products-category" className="admin-filterBar__label">
+            Categoría
+          </label>
+          <select
+            id="admin-products-category"
+            className="admin-filterBar__select"
+            value={selectedCategoryId}
+            onChange={(event) => {
+              const nextCategoryId = event.target.value;
+              setSelectedCategoryId(nextCategoryId);
+              setSelectedSubcategoryId("");
+            }}
+          >
+            <option value="">Todas las categorías</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+
+          {subcategoriesReady && filteredSubcategories.length > 0 ? (
+            <>
+              <label htmlFor="admin-products-subcategory" className="admin-filterBar__label">
+                Subcategoría
+              </label>
+              <select
+                id="admin-products-subcategory"
+                className="admin-filterBar__select"
+                value={selectedSubcategoryId}
+                onChange={(event) => setSelectedSubcategoryId(event.target.value)}
+              >
+                <option value="">
+                  {selectedCategoryId
+                    ? "Todas las subcategorías de esta categoría"
+                    : "Todas las subcategorías"}
+                </option>
+                {filteredSubcategories.map((subcategory) => (
+                  <option key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
+                  </option>
+                ))}
+              </select>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+
+      {!loading && !categories.length && subcategoriesReady && subcategories.length > 0 ? (
+        <div className="admin-filterBar">
+          <label htmlFor="admin-products-subcategory" className="admin-filterBar__label">
+            Subcategoría
+          </label>
+          <select
+            id="admin-products-subcategory"
+            className="admin-filterBar__select"
+            value={selectedSubcategoryId}
+            onChange={(event) => setSelectedSubcategoryId(event.target.value)}
+          >
+            <option value="">Todas las subcategorías</option>
+            {filteredSubcategories.map((subcategory) => (
+              <option key={subcategory.id} value={subcategory.id}>
+                {subcategory.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
       {loading ? <p>Cargando...</p> : null}
       {!loading && items.length === 0 ? <p>No hay productos cargados.</p> : null}
+      {!loading && items.length > 0 && visibleItems.length === 0 ? (
+        <p>No hay productos para esa subcategoría.</p>
+      ) : null}
 
       {!loading ? (
         <div className="grid">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <div key={item.id} className="card">
               {item.image_url ? <img src={item.image_url} alt={item.name} /> : null}
 
@@ -142,6 +306,13 @@ export default function ShopProducts() {
                 {item.categories.length > 0 ? item.categories.join(", ") : "Sin categoría"}
               </p>
 
+              {item.subcategories.length > 0 ? (
+                <p>
+                  <strong>Subcategorías:</strong>{" "}
+                  {item.subcategories.map((subcategory) => subcategory.name).join(", ")}
+                </p>
+              ) : null}
+
               <p>
                 <strong>Precio:</strong>{" "}
                 {item.price_eur ? `${Number(item.price_eur).toFixed(2)} EUR` : "Sin precio"}
@@ -156,10 +327,7 @@ export default function ShopProducts() {
               </p>
 
               <div className="actions">
-                <Link
-                  to={`/producto/${item.slug}`}
-                  className="admin-action admin-action--ghost"
-                >
+                <Link to={`/producto/${item.slug}`} className="admin-action admin-action--ghost">
                   Ver en web
                 </Link>
 

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { uploadImageFile } from "../../lib/storage";
-import "../../styles/ShopProductForm.scss";
+import "../../styles/shopProductForm.scss";
 
 function slugify(value) {
   return String(value || "")
@@ -252,6 +252,21 @@ export default function ShopProductForm() {
     setImageFiles((current) => current.filter((_, index) => index !== indexToRemove));
   }
 
+  function moveItem(items, fromIndex, toIndex) {
+    if (toIndex < 0 || toIndex >= items.length) {
+      return items;
+    }
+
+    const nextItems = [...items];
+    const [movedItem] = nextItems.splice(fromIndex, 1);
+    nextItems.splice(toIndex, 0, movedItem);
+    return nextItems;
+  }
+
+  function handleMoveSelectedImage(index, direction) {
+    setImageFiles((current) => moveItem(current, index, index + direction));
+  }
+
   function handleVariantChange(index, field, value) {
     setVariants((current) =>
       current.map((variant, variantIndex) =>
@@ -281,6 +296,10 @@ export default function ShopProductForm() {
 
       return current.filter((image) => image.id !== imageId);
     });
+  }
+
+  function handleMoveExistingImage(index, direction) {
+    setExistingImages((current) => moveItem(current, index, index + direction));
   }
 
   async function handleSubmit(event) {
@@ -640,11 +659,34 @@ export default function ShopProductForm() {
                 <div className="admin-image-preview">
                   {imageFiles.map((file, index) => (
                     <div key={index} className="admin-image-item">
+                      {index === 0 ? (
+                        <span className="admin-image-badge">Principal</span>
+                      ) : null}
                       <img
                         src={imagePreviewUrls[index]}
                         alt={`Nueva imagen ${index + 1}`}
                         className="admin-image-preview__img"
                       />
+                      <div className="admin-image-actions">
+                        <button
+                          type="button"
+                          className="admin-image-order"
+                          onClick={() => handleMoveSelectedImage(index, -1)}
+                          disabled={index === 0}
+                          aria-label={`Mover imagen ${index + 1} arriba`}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-image-order"
+                          onClick={() => handleMoveSelectedImage(index, 1)}
+                          disabled={index === imageFiles.length - 1}
+                          aria-label={`Mover imagen ${index + 1} abajo`}
+                        >
+                          ↓
+                        </button>
+                      </div>
                       <button
                         type="button"
                         className="admin-image-remove"
@@ -664,11 +706,34 @@ export default function ShopProductForm() {
                 <div className="admin-image-preview">
                   {existingImages.map((image, index) => (
                     <div key={image.id || image.path || index} className="admin-image-item">
+                      {index === 0 ? (
+                        <span className="admin-image-badge">Principal</span>
+                      ) : null}
                       <img
                         src={image.image_url}
                         alt={form.name || "Producto"}
                         className="admin-image-preview__img"
                       />
+                      <div className="admin-image-actions">
+                        <button
+                          type="button"
+                          className="admin-image-order"
+                          onClick={() => handleMoveExistingImage(index, -1)}
+                          disabled={index === 0}
+                          aria-label={`Mover imagen actual ${index + 1} arriba`}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-image-order"
+                          onClick={() => handleMoveExistingImage(index, 1)}
+                          disabled={index === existingImages.length - 1}
+                          aria-label={`Mover imagen actual ${index + 1} abajo`}
+                        >
+                          ↓
+                        </button>
+                      </div>
                       <button
                         type="button"
                         className="admin-image-remove"

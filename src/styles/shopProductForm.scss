@@ -131,6 +131,55 @@ grid-template-columns: repeat(auto-fill, minmax(92px, 92px));
   position: relative;
 }
 
+.admin-image-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 1;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(45, 39, 34, 0.88);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.admin-image-actions {
+  position: absolute;
+  left: 6px;
+  right: 36px;
+  bottom: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.admin-image-order {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2d2722;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.16);
+}
+
+.admin-image-order:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-image-order:not(:disabled):hover {
+  background: #fff;
+}
+
 .admin-image-remove {
   position: absolute;
   top: 6px;
