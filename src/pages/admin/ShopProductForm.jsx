@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { uploadImageFile } from "../../lib/storage";
@@ -25,6 +25,7 @@ function readDraft(key) {
 export default function ShopProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const imageInputRef = useRef(null);
   const isEdit = useMemo(() => Boolean(id), [id]);
   const draftKey = useMemo(() => `shop-product-form-draft:${id || "new"}`, [id]);
 
@@ -602,13 +603,24 @@ export default function ShopProductForm() {
 
           <div className="full">
             <label htmlFor="image">Imágenes</label>
-            <input
-              id="image"
-              type="file"
-              name="image"
-              accept=".jpg,.jpeg,.png,.webp,.avif,image/*"
-              onChange={handleImageInputChange}
-            />
+            <div className="shop-product-form__filePicker">
+              <button
+                type="button"
+                className="shop-product-form__fileButton"
+                onClick={() => imageInputRef.current?.click()}
+              >
+                Seleccionar archivo
+              </button>
+              <input
+                ref={imageInputRef}
+                id="image"
+                type="file"
+                name="image"
+                accept=".jpg,.jpeg,.png,.webp,.avif,image/*"
+                onChange={handleImageInputChange}
+                className="shop-product-form__fileInput"
+              />
+            </div>
             {imagePickerMessage ? (
               <p className="shop-product-form__helper">
                 {imagePickerMessage}
