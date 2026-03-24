@@ -14,7 +14,7 @@ export default function Contact() {
 
           <p>
             <strong>Email</strong>{" "}
-            <a href="mailto:info@bolboretasvalu.com">info@bolboretasvalu.com</a>
+            <a href="mailto:bolboretasvalu@gmail.com">bolboretasvalu@gmail.com</a>
           </p>
 
           <p>

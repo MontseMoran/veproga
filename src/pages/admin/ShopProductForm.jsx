@@ -61,6 +61,7 @@ export default function ShopProductForm() {
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePickerMessage, setImagePickerMessage] = useState("");
   const [lastImageSelectionKey, setLastImageSelectionKey] = useState("");
+  const [debugLines, setDebugLines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -86,6 +87,17 @@ export default function ShopProductForm() {
     () => imageFiles.map((file) => file?.name).filter(Boolean),
     [imageFiles]
   );
+
+  function pushDebugLine(message) {
+    setDebugLines((current) => {
+      const timestamp = new Date().toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      return [`${timestamp} · ${message}`, ...current].slice(0, 8);
+    });
+  }
 
   useEffect(() => {
     return () => {
@@ -286,6 +298,7 @@ export default function ShopProductForm() {
       );
       return nextFiles;
     });
+    pushDebugLine("Se eliminó una imagen seleccionada.");
   }
 
   function handleImageInputChange(event) {
@@ -293,12 +306,16 @@ export default function ShopProductForm() {
 
     if (newFiles.length === 0) {
       setImagePickerMessage("El dispositivo no ha entregado ninguna imagen.");
+      pushDebugLine("El selector volvió sin imagen.");
       return;
     }
 
     if (newFiles[0].size > 3 * 1024 * 1024) {
       setImagePickerMessage(
         `Imagen demasiado grande: ${formatFileSize(newFiles[0].size)}. Máximo 3 MB.`
+      );
+      pushDebugLine(
+        `Imagen rechazada por tamaño: ${newFiles[0].name || "imagen"} (${formatFileSize(newFiles[0].size)}).`
       );
       event.currentTarget.value = "";
       return;
@@ -309,6 +326,7 @@ export default function ShopProductForm() {
       .join("|");
 
     if (selectionKey === lastImageSelectionKey) {
+      pushDebugLine("Se repitió la misma imagen y no se añadió de nuevo.");
       return;
     }
 
@@ -321,6 +339,9 @@ export default function ShopProductForm() {
       `Imagen añadida: ${newFiles[0]?.name || "imagen"}`
     );
 
+    pushDebugLine(
+      `Imagen recibida: ${newFiles[0]?.name || "imagen"} (${formatFileSize(newFiles[0].size)}).`
+    );
     event.currentTarget.value = "";
   }
 
@@ -337,6 +358,7 @@ export default function ShopProductForm() {
 
   function handleMoveSelectedImage(index, direction) {
     setImageFiles((current) => moveItem(current, index, index + direction));
+    pushDebugLine(direction < 0 ? "Se movió una imagen hacia arriba." : "Se movió una imagen hacia abajo.");
   }
 
   function handleVariantChange(index, field, value) {
@@ -372,6 +394,11 @@ export default function ShopProductForm() {
 
   function handleMoveExistingImage(index, direction) {
     setExistingImages((current) => moveItem(current, index, index + direction));
+    pushDebugLine(
+      direction < 0
+        ? "Se movió una imagen actual hacia arriba."
+        : "Se movió una imagen actual hacia abajo."
+    );
   }
 
   async function handleSubmit(event) {
@@ -658,6 +685,20 @@ export default function ShopProductForm() {
                 Seleccionadas: {selectedImageNames.join(", ")}
               </p>
             ) : null}
+            <div className="shop-product-form__debug">
+              <p className="shop-product-form__debugTitle">Depuración de imágenes</p>
+              {debugLines.length > 0 ? (
+                <ul className="shop-product-form__debugList">
+                  {debugLines.map((line, index) => (
+                    <li key={`${line}-${index}`}>{line}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="shop-product-form__debugEmpty">
+                  Todavía no hay eventos de depuración.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="full">

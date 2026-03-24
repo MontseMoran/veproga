@@ -137,6 +137,40 @@
   border: 0;
 }
 
+.shop-product-form__debug {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(47, 93, 98, 0.16);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.shop-product-form__debugTitle {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2f5d62;
+}
+
+.shop-product-form__debugList {
+  margin: 0;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 0.84rem;
+}
+
+.shop-product-form__debugList li + li {
+  margin-top: 6px;
+}
+
+.shop-product-form__debugEmpty {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.84rem;
+}
+
 .admin-form .admin-image-preview {
   display: grid;
 grid-template-columns: repeat(auto-fill, minmax(92px, 92px));

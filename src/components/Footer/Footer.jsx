@@ -16,7 +16,7 @@ export default function Footer() {
 
         <div className="site-footer__col">
           <h3>Atención al cliente</h3>
-          <a href="mailto:info@bolboretasvalu.com">info@bolboretasvalu.com</a>
+          <a href="mailto:bolboretasvalu@gmail.com">bolboretasvalu@gmail.com</a>
           <a href="/#destacados">Productos destacados</a>
           <a href="/#colecciones">Colecciones</a>
         </div>

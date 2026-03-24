@@ -16,7 +16,7 @@ export default function Privacy() {
           <p>Bolboretas & Valu</p>
           <p>
             Email:{" "}
-            <a href="mailto:info@bolboretasvalu.com">info@bolboretasvalu.com</a>
+            <a href="mailto:bolboretasvalu@gmail.com">bolboretasvalu@gmail.com</a>
           </p>
         </section>
 
@@ -52,7 +52,7 @@ export default function Privacy() {
           <p>
             Puedes ejercer tus derechos de acceso, rectificación, supresión,
             oposición, limitación del tratamiento y portabilidad escribiendo a
-            info@bolboretasvalu.com.
+            bolboretasvalu@gmail.com.
           </p>
         </section>
       </div>
