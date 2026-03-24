@@ -10,12 +10,18 @@ export default function AdminLayout() {
   const lastUidRef = useRef(null);
   const isAdminRef = useRef(false);
   const validatingRef = useRef(false);
+  const hasUserRef = useRef(false);
   const nav = useNavigate();
 
   const resetCache = () => {
     lastUidRef.current = null;
     isAdminRef.current = false;
+    hasUserRef.current = false;
   };
+
+  useEffect(() => {
+    hasUserRef.current = Boolean(user);
+  }, [user]);
 
   useEffect(() => {
     let alive = true;
@@ -38,7 +44,7 @@ export default function AdminLayout() {
       }, 3000);
 
       try {
-        setLoading(true);
+        setLoading((current) => (hasUserRef.current ? current : true));
 
         const { data: userRes, error: userErr } = await supabase.auth.getUser();
         const currentUser = userRes?.user;
@@ -73,6 +79,7 @@ export default function AdminLayout() {
 
         lastUidRef.current = currentUser.id;
         isAdminRef.current = true;
+        hasUserRef.current = true;
         setUser(currentUser);
         setLoading(false);
       } finally {
