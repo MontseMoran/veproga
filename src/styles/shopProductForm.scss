@@ -113,7 +113,12 @@
   margin: 0;
 }
 
+.admin-form__grid > div:has(> label[for="image"]) {
+  order: 2;
+}
+
 .shop-product-form__images-row {
+  order: 1;
   grid-column: 1 / -1;
   display: grid;
   gap: 18px;
