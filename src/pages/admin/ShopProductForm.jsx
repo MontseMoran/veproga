@@ -70,6 +70,10 @@ export default function ShopProductForm() {
       ),
     [selectedCategoryIds, subcategories]
   );
+  const selectedImageNames = useMemo(
+    () => imageFiles.map((file) => file?.name).filter(Boolean),
+    [imageFiles]
+  );
 
   useEffect(() => {
     return () => {
@@ -638,6 +642,11 @@ export default function ShopProductForm() {
             {imagePickerMessage ? (
               <p className="shop-product-form__helper">
                 {imagePickerMessage}
+              </p>
+            ) : null}
+            {selectedImageNames.length > 0 ? (
+              <p className="shop-product-form__helper">
+                Seleccionadas: {selectedImageNames.join(", ")}
               </p>
             ) : null}
           </div>
