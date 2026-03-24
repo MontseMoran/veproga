@@ -11,6 +11,16 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function getFriendlyErrorMessage(error) {
+  const message = String(error?.message || "");
+
+  if (message.includes("shop_categories_slug_key")) {
+    return "Ya existe una categoría con ese slug. Cambia el nombre o el slug.";
+  }
+
+  return message || "No se pudo guardar la categoría.";
+}
+
 export default function ShopCategoryForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -42,7 +52,7 @@ export default function ShopCategoryForm() {
       if (!active) return;
 
       if (error) {
-        alert(error.message);
+        alert(getFriendlyErrorMessage(error));
       } else if (data) {
         setForm({
           slug: data.slug || "",
@@ -92,7 +102,7 @@ export default function ShopCategoryForm() {
     setSaving(false);
 
     if (error) {
-      alert(error.message);
+      alert(getFriendlyErrorMessage(error));
       return;
     }
 

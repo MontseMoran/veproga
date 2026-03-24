@@ -185,7 +185,7 @@ export default function ShopProductForm() {
           .order("sort_order", { ascending: true });
 
         if (subcategoriesError) {
-          console.warn("Subcategories load warning:", subcategoriesError.message);
+          console.warn("Aviso al cargar subcategorías:", subcategoriesError.message);
           setSubcategories([]);
           setSubcategoriesReady(false);
         } else {
@@ -574,7 +574,7 @@ export default function ShopProductForm() {
           if (productSubcategoriesError) throw productSubcategoriesError;
         }
       } catch (error) {
-        console.warn("Product subcategories save warning:", error.message);
+        console.warn("Aviso al guardar subcategorías del producto:", error.message);
       }
 
       await supabase.from("shop_product_variants").delete().eq("product_id", productId);

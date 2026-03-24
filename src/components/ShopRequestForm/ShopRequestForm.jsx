@@ -52,7 +52,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
 
     try {
       if (!supabase) {
-        throw new Error("Supabase client not configured");
+        throw new Error("El cliente de Supabase no está configurado.");
       }
 
       const payload = {
@@ -104,7 +104,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
       setIsOpen(true);
       onSuccess?.();
     } catch (error) {
-      console.error("ShopRequestForm submit error:", error);
+      console.error("Error al enviar el formulario de solicitud:", error);
       setErrMsg(COPY.error);
     } finally {
       setSending(false);

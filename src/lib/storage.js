@@ -9,7 +9,7 @@ const BUCKET =
 
 export async function uploadImageFile(file, folder = "uploads") {
   if (!supabase) {
-    throw new Error("Supabase client not configured");
+    throw new Error("El cliente de Supabase no está configurado.");
   }
 
   const resized = await resizeImageFile(file, 1200, 0.7);

@@ -524,6 +524,45 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.admin-sectionList {
+  display: grid;
+  gap: 22px;
+}
+
+.admin-sectionBlock {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-sectionBlock__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.admin-sectionBlock__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #1f2937;
+}
+
+.admin-sectionBlock__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(47, 93, 98, 0.08);
+  color: #2f5d62;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .card {
   display: flex;
   flex-direction: column;

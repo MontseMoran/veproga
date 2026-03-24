@@ -11,6 +11,16 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function getFriendlyErrorMessage(error) {
+  const message = String(error?.message || "");
+
+  if (message.includes("shop_subcategories_slug_key")) {
+    return "Ya existe una subcategoría con ese slug. Cambia el nombre o el slug.";
+  }
+
+  return message || "No se pudo guardar la subcategoría.";
+}
+
 export default function ShopSubcategoryForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -116,7 +126,7 @@ export default function ShopSubcategoryForm() {
 
       navigate("/admin/subcategorias");
     } catch (error) {
-      alert(error.message);
+      alert(getFriendlyErrorMessage(error));
     } finally {
       setSaving(false);
     }

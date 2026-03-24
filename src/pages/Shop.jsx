@@ -252,7 +252,7 @@ export default function Shop() {
           setProducts(normalizedProducts);
         }
       } catch (error) {
-        console.error("Shop load error:", error);
+        console.error("Error al cargar la tienda:", error);
         if (!cancelled) {
           setCategories(FALLBACK_CATEGORIES);
           setProducts([]);

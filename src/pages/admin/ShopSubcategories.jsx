@@ -5,13 +5,24 @@ import { supabase } from "../../lib/supabaseClient";
 export default function ShopSubcategories() {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const categoriesById = useMemo(
-    () => Object.fromEntries(categories.map((category) => [category.id, category])),
-    [categories]
-  );
+  const groupedItems = useMemo(() => {
+    const sourceItems =
+      selectedCategoryId === "all"
+        ? items
+        : items.filter((item) => item.category_id === selectedCategoryId);
+
+    return categories
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        items: sourceItems.filter((item) => item.category_id === category.id),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [categories, items, selectedCategoryId]);
 
   useEffect(() => {
     let active = true;
@@ -83,46 +94,74 @@ export default function ShopSubcategories() {
         </Link>
       </div>
 
+      {!loading && !loadError && categories.length > 0 ? (
+        <div className="admin-filterBar">
+          <span className="admin-filterBar__label">Categoría</span>
+          <select
+            className="admin-filterBar__select"
+            value={selectedCategoryId}
+            onChange={(event) => setSelectedCategoryId(event.target.value)}
+          >
+            <option value="all">Todas las categorías</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
       {loading ? <p>Cargando...</p> : null}
       {!loading && loadError ? <p>{loadError}</p> : null}
       {!loading && !loadError && items.length === 0 ? <p>No hay subcategorias creadas.</p> : null}
 
       {!loading && !loadError ? (
-        <div className="grid">
-          {items.map((item) => (
-            <div key={item.id} className="card">
-              <h4>{item.name}</h4>
-              <p>{item.description || "Sin descripcion."}</p>
-              <p>
-                <strong>Categoria:</strong> {categoriesById[item.category_id]?.name || "Sin categoria"}
-              </p>
-              <p>
-                <strong>Slug:</strong> {item.slug}
-              </p>
-              <p>
-                <strong>Orden:</strong> {item.sort_order ?? 0}
-              </p>
-              <p>
-                <strong>Estado:</strong> {item.is_active ? "Activa" : "Oculta"}
-              </p>
-
-              <div className="actions">
-                <Link
-                  to={`/admin/subcategorias/${item.id}/editar`}
-                  className="admin-action admin-action--edit"
-                >
-                  Editar
-                </Link>
-
-                <button
-                  type="button"
-                  className="admin-action admin-action--danger"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  Borrar
-                </button>
+        <div className="admin-sectionList">
+          {groupedItems.map((group) => (
+            <section key={group.id} className="admin-sectionBlock">
+              <div className="admin-sectionBlock__header">
+                <h3>{group.name}</h3>
+                <span className="admin-sectionBlock__count">
+                  {group.items.length}
+                </span>
               </div>
-            </div>
+
+              <div className="grid">
+                {group.items.map((item) => (
+                  <div key={item.id} className="card">
+                    <h4>{item.name}</h4>
+                    <p>{item.description || "Sin descripcion."}</p>
+                    <p>
+                      <strong>Slug:</strong> {item.slug}
+                    </p>
+                    <p>
+                      <strong>Orden:</strong> {item.sort_order ?? 0}
+                    </p>
+                    <p>
+                      <strong>Estado:</strong> {item.is_active ? "Activa" : "Oculta"}
+                    </p>
+
+                    <div className="actions">
+                      <Link
+                        to={`/admin/subcategorias/${item.id}/editar`}
+                        className="admin-action admin-action--edit"
+                      >
+                        Editar
+                      </Link>
+
+                      <button
+                        type="button"
+                        className="admin-action admin-action--danger"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        Borrar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       ) : null}

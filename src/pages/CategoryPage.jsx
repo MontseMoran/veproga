@@ -124,7 +124,7 @@ export default function CategoryPage() {
           subcategoriesData = subcategoryRows || [];
           productSubcategoryRows = productSubcategoryData || [];
         } catch (error) {
-          console.warn("Category subcategories warning:", error.message);
+          console.warn("Aviso al cargar subcategorías de la categoría:", error.message);
         }
 
         const subcategoriesByProductId = {};
@@ -167,7 +167,7 @@ export default function CategoryPage() {
           setSelectedSubcategory(subcategoriesData.length > 0 ? "" : "all");
         }
       } catch (error) {
-        console.error("Category page error:", error);
+        console.error("Error en la página de categoría:", error);
         if (!cancelled) {
           setCategory(null);
           setProducts([]);

@@ -111,7 +111,7 @@ export default function ProductDetail() {
           setSelectedSize("");
         }
       } catch (error) {
-        console.error("Product detail error:", error);
+        console.error("Error en la ficha de producto:", error);
         if (!cancelled) setProduct(null);
       } finally {
         if (!cancelled) setLoading(false);
