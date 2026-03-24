@@ -94,6 +94,15 @@ export default function ShopProductForm() {
   }, [imagePreviewUrls]);
 
   useEffect(() => {
+    console.log("shopProductForm:image-state", {
+      imageFilesLength: imageFiles.length,
+      imagePickerMessage,
+      selectedImageNames,
+      imagePreviewUrls,
+    });
+  }, [imageFiles, imagePickerMessage, selectedImageNames, imagePreviewUrls]);
+
+  useEffect(() => {
     let active = true;
 
     async function load() {
@@ -301,6 +310,10 @@ export default function ShopProductForm() {
           }
         : null,
     });
+    console.log("shopProductForm:before-set", {
+      currentImageFilesLength: imageFiles.length,
+      newFilesLength: newFiles.length,
+    });
 
     if (newFiles.length === 0) {
       setImagePickerMessage("El dispositivo no ha entregado ninguna imagen.");
@@ -323,7 +336,15 @@ export default function ShopProductForm() {
       return;
     }
 
-    setImageFiles((current) => [...current, ...newFiles]);
+    setImageFiles((current) => {
+      const nextFiles = [...current, ...newFiles];
+      console.log("shopProductForm:set-image-files", {
+        currentLength: current.length,
+        nextLength: nextFiles.length,
+        nextNames: nextFiles.map((file) => file.name),
+      });
+      return nextFiles;
+    });
     setLastImageSelectionKey(selectionKey);
     setImagePickerMessage(
       `Imagen añadida: ${newFiles[0]?.name || "imagen"}`
