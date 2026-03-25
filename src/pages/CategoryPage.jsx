@@ -250,7 +250,10 @@ export default function CategoryPage() {
   return (
     <main className="category-page">
       <div className="category-page__container">
-        <header className="category-page__header">
+        <header
+          className="category-page__header reveal-on-scroll"
+          style={{ "--reveal-delay": "40ms" }}
+        >
           <p className="category-page__breadcrumb">
             {category.name}
             {selectedSubcategory === "all" ? " > Todo" : ""}
@@ -261,7 +264,10 @@ export default function CategoryPage() {
         </header>
 
         {filterOptions.length > 0 ? (
-          <div className="category-page__filtersWrap">
+          <div
+            className="category-page__filtersWrap reveal-on-scroll"
+            style={{ "--reveal-delay": "100ms" }}
+          >
             <div className="category-page__filters">
               <button
                 type="button"
@@ -292,8 +298,12 @@ export default function CategoryPage() {
         ) : (
           <>
             <div className="category-page__grid">
-              {paginatedProducts.map((product) => (
-                <article key={product.id} className="category-page__card">
+              {paginatedProducts.map((product, index) => (
+                <article
+                  key={product.id}
+                  className="category-page__card reveal-on-scroll"
+                  style={{ "--reveal-delay": `${140 + index * 45}ms` }}
+                >
                   <Link to={`/producto/${product.slug}`} className="category-page__imageWrap">
                     {product.imageUrl ? <img src={product.imageUrl} alt={product.name} /> : null}
                   </Link>
@@ -316,7 +326,11 @@ export default function CategoryPage() {
             </div>
 
             {totalPages > 1 ? (
-              <nav className="category-page__pagination" aria-label="Paginación de productos">
+              <nav
+                className="category-page__pagination reveal-on-scroll"
+                aria-label="Paginación de productos"
+                style={{ "--reveal-delay": "220ms" }}
+              >
                 <button
                   type="button"
                   className="category-page__pageBtn"

@@ -139,32 +139,13 @@ function normalizeCategory(raw) {
   };
 }
 
-function buildCollectionCards(categories, products) {
-  const collectionSlugs = ["infantil-juvenil", "otros", "outlet"];
-
-  return collectionSlugs
-    .map((slug) => {
-      const category = categories.find((item) => item.slug === slug) || null;
-      const imageUrl =
-        products.find((item) => item.categories.some((cat) => cat.slug === slug))?.imageUrl || "";
-
-      if (!category) return null;
-
-      return {
-        slug: category.slug,
-        label: category.collectionLabel,
-        imageUrl,
-      };
-    })
-    .filter(Boolean);
-}
-
 export default function Shop() {
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [featuredStart, setFeaturedStart] = useState(0);
   const [featuredVisibleCount, setFeaturedVisibleCount] = useState(1);
+  const [featuredLimit, setFeaturedLimit] = useState(8);
   const [featuredDirection, setFeaturedDirection] = useState("forward");
 
   useEffect(() => {
@@ -276,20 +257,24 @@ export default function Shop() {
     function syncFeaturedVisibleCount() {
       if (window.innerWidth >= 1440) {
         setFeaturedVisibleCount(4);
+        setFeaturedLimit(8);
         return;
       }
 
       if (window.innerWidth >= 900) {
         setFeaturedVisibleCount(3);
+        setFeaturedLimit(8);
         return;
       }
 
       if (window.innerWidth >= 600) {
         setFeaturedVisibleCount(2);
+        setFeaturedLimit(8);
         return;
       }
 
       setFeaturedVisibleCount(1);
+      setFeaturedLimit(4);
     }
 
     syncFeaturedVisibleCount();
@@ -298,7 +283,10 @@ export default function Shop() {
     return () => window.removeEventListener("resize", syncFeaturedVisibleCount);
   }, []);
 
-  const featuredProducts = useMemo(() => products.slice(0, 8), [products]);
+  const featuredProducts = useMemo(
+    () => products.slice(0, featuredLimit),
+    [products, featuredLimit]
+  );
   const maxFeaturedStart = useMemo(
     () => Math.max(0, featuredProducts.length - featuredVisibleCount),
     [featuredProducts.length, featuredVisibleCount]
@@ -307,11 +295,6 @@ export default function Shop() {
     () => featuredProducts.slice(featuredStart, featuredStart + featuredVisibleCount),
     [featuredProducts, featuredStart, featuredVisibleCount]
   );
-  const collectionCards = useMemo(
-    () => buildCollectionCards(categories, products),
-    [categories, products]
-  );
-
   useEffect(() => {
     setFeaturedStart((current) => Math.min(current, maxFeaturedStart));
   }, [maxFeaturedStart]);
@@ -330,7 +313,7 @@ export default function Shop() {
   return (
     <main className="shop">
       <div className="shop__container">
-        <header className="shop__hero">
+        <header className="shop__hero reveal-on-scroll" style={{ "--reveal-delay": "40ms" }}>
           <img
             src="/images/logo.png"
             alt="Bolboretas & Valu"
@@ -338,7 +321,11 @@ export default function Shop() {
           />
         </header>
 
-        <section className="shop__section" id="categorias">
+        <section
+          className="shop__section reveal-on-scroll"
+          id="categorias"
+          style={{ "--reveal-delay": "80ms" }}
+        >
           <div className="shop__heading">
             <span />
             <h2>{COPY.categoriesTitle}</h2>
@@ -346,11 +333,12 @@ export default function Shop() {
           </div>
 
           <div className="shop__categoryGrid">
-            {HOME_CATEGORIES.map((category) => (
+            {HOME_CATEGORIES.map((category, index) => (
               <Link
                 key={category.slug}
                 to={`/categoria/${category.slug}`}
-                className={`shop__categoryCard shop__categoryCard--${category.slug}`}
+                className={`shop__categoryCard shop__categoryCard--${category.slug} reveal-on-scroll`}
+                style={{ "--reveal-delay": `${120 + index * 60}ms` }}
               >
                 <div className="shop__categoryImage">
                   {category.imageUrl ? (
@@ -372,7 +360,11 @@ export default function Shop() {
           </div>
         </section>
 
-        <section className="shop__section" id="destacados">
+        <section
+          className="shop__section reveal-on-scroll"
+          id="destacados"
+          style={{ "--reveal-delay": "140ms" }}
+        >
           <div className="shop__heading">
             <span />
             <h2>{COPY.productsTitle}</h2>
@@ -400,8 +392,12 @@ export default function Shop() {
               key={`${featuredDirection}-${featuredStart}`}
               className={`shop__productRail shop__productRail--${featuredDirection}`}
             >
-              {visibleFeaturedProducts.map((product) => (
-                <article key={product.id} className="shop__productCard">
+              {visibleFeaturedProducts.map((product, index) => (
+                <article
+                  key={product.id}
+                  className="shop__productCard reveal-on-scroll"
+                  style={{ "--reveal-delay": `${180 + index * 70}ms` }}
+                >
                   <div className={`shop__productMedia shop__productMedia--${product.accent}`}>
                     {product.imageUrl ? (
                       <img
@@ -449,29 +445,6 @@ export default function Shop() {
           </div>
         </section>
 
-        <section className="shop__section" id="colecciones">
-          <div className="shop__collectionGrid">
-            {collectionCards.map((collection) => (
-              <Link
-                key={collection.slug}
-                to={`/categoria/${collection.slug}`}
-                className="shop__collectionCard"
-              >
-                {collection.imageUrl ? (
-                  <img
-                    src={collection.imageUrl}
-                    alt={collection.label}
-                    className="shop__collectionImg"
-                  />
-                ) : (
-                  <div className="shop__collectionFallback" />
-                )}
-
-                <div className="shop__collectionOverlay">{collection.label}</div>
-              </Link>
-            ))}
-          </div>
-        </section>
       </div>
     </main>
   );

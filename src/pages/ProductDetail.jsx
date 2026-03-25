@@ -322,7 +322,10 @@ export default function ProductDetail() {
 
       <div className="product-detail__container">
         <section className="product-detail__grid">
-          <div className="product-detail__gallery">
+          <div
+            className="product-detail__gallery reveal-on-scroll"
+            style={{ "--reveal-delay": "40ms" }}
+          >
             <div className="product-detail__mainImage">
               {product.images.length > 1 ? (
                 <>
@@ -371,7 +374,10 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <div className="product-detail__content">
+          <div
+            className="product-detail__content reveal-on-scroll"
+            style={{ "--reveal-delay": "120ms" }}
+          >
             <p className="product-detail__category">{product.categoryName}</p>
             <h1>{product.name}</h1>
             <p className="product-detail__price">
@@ -453,7 +459,10 @@ export default function ProductDetail() {
             {addedMsg ? <p className="product-detail__addedMsg">{addedMsg}</p> : null}
             <p className="product-detail__description">{product.description}</p>
 
-            <div className="product-detail__request">
+            <div
+              className="product-detail__request reveal-on-scroll"
+              style={{ "--reveal-delay": "200ms" }}
+            >
               <ShopRequestForm
                 product={product}
                 categoryName={product.categoryName}

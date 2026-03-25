@@ -197,9 +197,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  transform: none;
+  box-shadow: none;
 }
 
 .category-page__pageBtn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
   background: rgba(45, 39, 34, 0.04);
 }
 

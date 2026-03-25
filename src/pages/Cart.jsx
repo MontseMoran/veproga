@@ -63,28 +63,35 @@ export default function Cart() {
       return;
     }
 
-    const startsAt = data.starts_at ? new Date(data.starts_at).getTime() : null;
-    const endsAt = data.ends_at ? new Date(data.ends_at).getTime() : null;
+    const validFrom = data.valid_from ? new Date(data.valid_from).getTime() : null;
+    const validUntil = data.valid_until ? new Date(data.valid_until).getTime() : null;
     const now = Date.now();
 
-    if (startsAt && Number.isFinite(startsAt) && now < startsAt) {
+    if (validFrom && Number.isFinite(validFrom) && now < validFrom) {
       setDiscountError("Ese código todavía no está disponible.");
       return;
     }
 
-    if (endsAt && Number.isFinite(endsAt) && now > endsAt) {
+    if (validUntil && Number.isFinite(validUntil) && now > validUntil) {
       setDiscountError("Ese código ya ha caducado.");
       return;
     }
 
     if (subtotal < Number(data.min_order_amount || 0)) {
       setDiscountError(
-        `Este código requiere un pedido mínimo de ${Number(
-          data.min_order_amount || 0
-        )
+        `Este código requiere un pedido mínimo de ${Number(data.min_order_amount || 0)
           .toFixed(2)
           .replace(".", ",")} €.`
       );
+      return;
+    }
+
+    if (
+      data.usage_limit &&
+      Number(data.usage_limit) > 0 &&
+      Number(data.times_used || 0) >= Number(data.usage_limit)
+    ) {
+      setDiscountError("Ese código ya ha agotado sus usos.");
       return;
     }
 
@@ -95,7 +102,7 @@ export default function Cart() {
   return (
     <main className="cart-page">
       <div className="cart-page__container">
-        <header className="cart-page__header">
+        <header className="cart-page__header reveal-on-scroll" style={{ "--reveal-delay": "40ms" }}>
           <h1>Carrito</h1>
           <div className="cart-page__headerActions">
             <Link to="/tienda" className="cart-page__continue cart-page__continue--ghost">
@@ -111,7 +118,7 @@ export default function Cart() {
         </header>
 
         {items.length === 0 ? (
-          <div className="cart-page__empty">
+          <div className="cart-page__empty reveal-on-scroll" style={{ "--reveal-delay": "100ms" }}>
             <p>Tu carrito está vacío.</p>
             <Link to="/tienda" className="cart-page__continue">
               Seguir comprando
@@ -120,8 +127,12 @@ export default function Cart() {
         ) : (
           <section className="cart-page__layout">
             <div className="cart-page__list">
-              {items.map((item) => (
-                <article key={item.lineId || item.id} className="cart-page__item">
+              {items.map((item, index) => (
+                <article
+                  key={item.lineId || item.id}
+                  className="cart-page__item reveal-on-scroll"
+                  style={{ "--reveal-delay": `${100 + index * 50}ms` }}
+                >
                   <Link to={`/producto/${item.slug}`} className="cart-page__imageWrap">
                     {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
                   </Link>
@@ -173,7 +184,10 @@ export default function Cart() {
               ))}
             </div>
 
-            <aside className="cart-page__summary">
+            <aside
+              className="cart-page__summary reveal-on-scroll"
+              style={{ "--reveal-delay": "140ms" }}
+            >
               <form className="cart-page__discount" onSubmit={handleApplyDiscount}>
                 <label htmlFor="cart-discount-code" className="cart-page__summaryLabel">
                   Código de descuento

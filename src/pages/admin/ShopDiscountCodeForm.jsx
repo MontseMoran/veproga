@@ -20,11 +20,12 @@ export default function ShopDiscountCodeForm() {
   const [form, setForm] = useState({
     code: "",
     description: "",
-    discount_type: "percent",
-    discount_value: 0,
+    type: "percent",
+    value: 0,
     min_order_amount: 0,
-    starts_at: "",
-    ends_at: "",
+    valid_from: "",
+    valid_until: "",
+    usage_limit: 1,
     is_active: true,
   });
   const [loading, setLoading] = useState(isEdit);
@@ -50,11 +51,12 @@ export default function ShopDiscountCodeForm() {
         setForm({
           code: data.code || "",
           description: data.description || "",
-          discount_type: data.discount_type || "percent",
-          discount_value: data.discount_value ?? 0,
+          type: data.type || "percent",
+          value: data.value ?? 0,
           min_order_amount: data.min_order_amount ?? 0,
-          starts_at: data.starts_at ? String(data.starts_at).slice(0, 16) : "",
-          ends_at: data.ends_at ? String(data.ends_at).slice(0, 16) : "",
+          valid_from: data.valid_from ? String(data.valid_from).slice(0, 16) : "",
+          valid_until: data.valid_until ? String(data.valid_until).slice(0, 16) : "",
+          usage_limit: data.usage_limit ?? 1,
           is_active: data.is_active ?? true,
         });
       }
@@ -84,11 +86,12 @@ export default function ShopDiscountCodeForm() {
     const payload = {
       code: form.code.trim().toUpperCase(),
       description: form.description.trim() || null,
-      discount_type: form.discount_type,
-      discount_value: Number(form.discount_value || 0),
+      type: form.type,
+      value: Number(form.value || 0),
       min_order_amount: Number(form.min_order_amount || 0),
-      starts_at: form.starts_at || null,
-      ends_at: form.ends_at || null,
+      valid_from: form.valid_from || null,
+      valid_until: form.valid_until || null,
+      usage_limit: Number(form.usage_limit || 1),
       is_active: form.is_active,
     };
 
@@ -128,29 +131,22 @@ export default function ShopDiscountCodeForm() {
           </div>
 
           <div>
-            <label htmlFor="discount_type">Tipo de descuento</label>
-            <select
-              id="discount_type"
-              name="discount_type"
-              value={form.discount_type}
-              onChange={handleChange}
-            >
+            <label htmlFor="type">Tipo de descuento</label>
+            <select id="type" name="type" value={form.type} onChange={handleChange}>
               <option value="percent">Porcentaje</option>
               <option value="fixed">Importe fijo</option>
             </select>
           </div>
 
           <div>
-            <label htmlFor="discount_value">
-              Valor {form.discount_type === "percent" ? "(%)" : "(EUR)"}
-            </label>
+            <label htmlFor="value">Valor {form.type === "percent" ? "(%)" : "(EUR)"}</label>
             <input
-              id="discount_value"
-              name="discount_value"
+              id="value"
+              name="value"
               type="number"
               min="0"
-              step={form.discount_type === "percent" ? "1" : "0.01"}
-              value={form.discount_value}
+              step={form.type === "percent" ? "1" : "0.01"}
+              value={form.value}
               onChange={handleChange}
               required
             />
@@ -170,23 +166,36 @@ export default function ShopDiscountCodeForm() {
           </div>
 
           <div>
-            <label htmlFor="starts_at">Inicio</label>
+            <label htmlFor="valid_from">Inicio</label>
             <input
-              id="starts_at"
-              name="starts_at"
+              id="valid_from"
+              name="valid_from"
               type="datetime-local"
-              value={form.starts_at}
+              value={form.valid_from}
               onChange={handleChange}
             />
           </div>
 
           <div>
-            <label htmlFor="ends_at">Fin</label>
+            <label htmlFor="valid_until">Fin</label>
             <input
-              id="ends_at"
-              name="ends_at"
+              id="valid_until"
+              name="valid_until"
               type="datetime-local"
-              value={form.ends_at}
+              value={form.valid_until}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="usage_limit">Límite de usos</label>
+            <input
+              id="usage_limit"
+              name="usage_limit"
+              type="number"
+              min="1"
+              step="1"
+              value={form.usage_limit}
               onChange={handleChange}
             />
           </div>

@@ -31,18 +31,26 @@ function getDiscountAmount(subtotal, discount) {
   if (subtotal < minOrderAmount) return 0;
 
   const now = Date.now();
-  const startsAt = discount.starts_at ? new Date(discount.starts_at).getTime() : null;
-  const endsAt = discount.ends_at ? new Date(discount.ends_at).getTime() : null;
+  const validFrom = discount.valid_from ? new Date(discount.valid_from).getTime() : null;
+  const validUntil = discount.valid_until ? new Date(discount.valid_until).getTime() : null;
 
-  if (startsAt && Number.isFinite(startsAt) && now < startsAt) return 0;
-  if (endsAt && Number.isFinite(endsAt) && now > endsAt) return 0;
+  if (validFrom && Number.isFinite(validFrom) && now < validFrom) return 0;
+  if (validUntil && Number.isFinite(validUntil) && now > validUntil) return 0;
 
-  if (discount.discount_type === "percent") {
-    return subtotal * (Number(discount.discount_value || 0) / 100);
+  if (
+    discount.usage_limit &&
+    Number(discount.usage_limit) > 0 &&
+    Number(discount.times_used || 0) >= Number(discount.usage_limit)
+  ) {
+    return 0;
   }
 
-  if (discount.discount_type === "fixed") {
-    return Number(discount.discount_value || 0);
+  if (discount.type === "percent") {
+    return subtotal * (Number(discount.value || 0) / 100);
+  }
+
+  if (discount.type === "fixed") {
+    return Number(discount.value || 0);
   }
 
   return 0;

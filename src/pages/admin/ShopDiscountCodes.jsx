@@ -67,24 +67,30 @@ export default function ShopDiscountCodes() {
               <h4>{item.code}</h4>
               <p>{item.description || "Sin descripción."}</p>
               <p>
-                <strong>Tipo:</strong>{" "}
-                {item.discount_type === "percent" ? "Porcentaje" : "Importe fijo"}
+                <strong>Tipo:</strong> {item.type === "percent" ? "Porcentaje" : "Importe fijo"}
               </p>
               <p>
                 <strong>Valor:</strong>{" "}
-                {item.discount_type === "percent"
-                  ? `${Number(item.discount_value || 0)}%`
-                  : `${Number(item.discount_value || 0).toFixed(2)} EUR`}
+                {item.type === "percent"
+                  ? `${Number(item.value || 0)}%`
+                  : `${Number(item.value || 0).toFixed(2)} EUR`}
               </p>
               <p>
                 <strong>Pedido mínimo:</strong>{" "}
                 {Number(item.min_order_amount || 0).toFixed(2)} EUR
               </p>
               <p>
+                <strong>Límite de usos:</strong>{" "}
+                {item.usage_limit ? item.usage_limit : "Sin límite"}
+              </p>
+              <p>
+                <strong>Usos consumidos:</strong> {Number(item.times_used || 0)}
+              </p>
+              <p>
                 <strong>Vigencia:</strong>{" "}
-                {item.starts_at || item.ends_at
-                  ? `${item.starts_at ? new Date(item.starts_at).toLocaleDateString("es-ES") : "Sin inicio"} - ${
-                      item.ends_at ? new Date(item.ends_at).toLocaleDateString("es-ES") : "Sin fin"
+                {item.valid_from || item.valid_until
+                  ? `${item.valid_from ? new Date(item.valid_from).toLocaleDateString("es-ES") : "Sin inicio"} - ${
+                      item.valid_until ? new Date(item.valid_until).toLocaleDateString("es-ES") : "Sin fin"
                     }`
                   : "Sin fechas"}
               </p>
