@@ -123,6 +123,10 @@
 
 .category-page__body p {
   color: rgba(45, 39, 34, 0.78);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .category-page__footer {

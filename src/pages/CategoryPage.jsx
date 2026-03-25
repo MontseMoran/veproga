@@ -31,7 +31,7 @@ const CATEGORY_SUBCATEGORY_FALLBACKS = {
   ],
   hombre: ["Camisetas", "Pantalones", "Sudaderas", "Zapatillas", "Complementos"],
   bebes: ["Primera puesta", "Canastilla", "Pijamas", "Conjuntos", "Complementos"],
-  infantil: ["Camisetas", "Pantalones", "Vestidos", "Calzado", "Abrigos"],
+  "infantil-juvenil": ["Camisetas", "Pantalones", "Vestidos", "Calzado", "Abrigos"],
   hogar: ["Toallas", "Sábanas", "Mantelería", "Decoración", "Textil"],
   outlet: ["Últimas unidades", "Oportunidades"],
 };

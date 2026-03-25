@@ -22,7 +22,7 @@ const CATEGORY_PRESETS = {
     collectionLabel: "Bebé",
     accent: "sky",
   },
-  infantil: {
+  "infantil-juvenil": {
     title: "Infantil",
     subtitle: "Ropa y calzado infantil",
     collectionLabel: "Moda infantil",
@@ -52,7 +52,7 @@ const CATEGORY_IMAGES = {
   mujer: "/images/mujer.png",
   hombre: "/images/hombre.png",
   bebes: "/images/bebe.png",
-  infantil: "/images/infantil-juvenil.png",
+  "infantil-juvenil": "/images/infantil-juvenil.png",
   hogar: "/images/hogar.png",
 };
 
@@ -61,7 +61,11 @@ const FALLBACK_CATEGORIES = [
   { slug: "hombre", name: "Hombre", description: "Ropa, zapatillas y moda casual" },
   { slug: "bebes", name: "Bebé", description: "Ropa, canastillas y primeras puestas" },
   { slug: "hogar", name: "Hogar", description: "Textiles y detalles para casa" },
-  { slug: "infantil", name: "Infantil", description: "Ropa y calzado infantil" },
+  {
+    slug: "infantil-juvenil",
+    name: "Infantil-Juvenil",
+    description: "Ropa y calzado infantil",
+  },
   { slug: "otros", name: "Otros", description: "Hilos, costura y pequeños artículos" },
   { slug: "outlet", name: "Outlet", description: "Remates y oportunidades" },
 ];
@@ -89,7 +93,7 @@ const HOME_CATEGORIES = [
     imageUrl: "/images/bebe.png",
   },
   {
-    slug: "infantil",
+    slug: "infantil-juvenil",
     name: "Infantil y juvenil",
     description: "Ropa y calzado infantil",
     accent: "sky",
@@ -136,7 +140,7 @@ function normalizeCategory(raw) {
 }
 
 function buildCollectionCards(categories, products) {
-  const collectionSlugs = ["infantil", "otros", "outlet"];
+  const collectionSlugs = ["infantil-juvenil", "otros", "outlet"];
 
   return collectionSlugs
     .map((slug) => {

@@ -239,6 +239,13 @@
   margin-bottom: 6px;
 }
 
+.shop__productText {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .shop__productFooter {
   display: flex;
   align-items: baseline;

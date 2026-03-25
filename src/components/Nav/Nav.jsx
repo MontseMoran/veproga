@@ -7,7 +7,7 @@ const categoryLinks = [
   { to: "/categoria/mujer", label: "Mujer" },
   { to: "/categoria/hombre", label: "Hombre" },
   { to: "/categoria/bebes", label: "Bebé" },
-  { to: "/categoria/infantil", label: "Infantil-Juvenil" },
+  { to: "/categoria/infantil-juvenil", label: "Infantil-Juvenil" },
   { to: "/categoria/hogar", label: "Hogar" },
   { to: "/categoria/otros", label: "Otros" },
   { to: "/categoria/outlet", label: "Outlet" },
