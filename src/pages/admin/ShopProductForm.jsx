@@ -13,6 +13,16 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function mapProductSaveError(error) {
+  const message = String(error?.message || "");
+
+  if (message.includes("shop_products_slug_key")) {
+    return "Ya existe otro producto con la misma URL. Cambia el nombre del producto para que sea distinto.";
+  }
+
+  return message || "No se pudo guardar el producto.";
+}
+
 function readDraft(key) {
   try {
     const raw = window.localStorage.getItem(key);
@@ -514,17 +524,6 @@ export default function ShopProductForm() {
     let uploadedImages = [];
 
     try {
-      if (imageFiles.length > 0) {
-        for (const file of imageFiles) {
-          pushDebugLine(
-            `Procesando imagen para subida: ${file.name || "imagen"} (${formatFileSize(file.size)}).`
-          );
-          const uploaded = await uploadImageFile(file, "shop-products");
-          pushDebugLine(`Imagen subida correctamente: ${uploaded.path}`);
-          uploadedImages.push(uploaded);
-        }
-      }
-
       const payload = {
         sku: form.sku.trim(),
         slug: slugify(form.slug || form.name),
@@ -538,6 +537,21 @@ export default function ShopProductForm() {
 
       if (!payload.sku) throw new Error("SKU obligatorio");
       if (!payload.name) throw new Error("Nombre obligatorio");
+
+      const slugQuery = supabase
+        .from("shop_products")
+        .select("id")
+        .eq("slug", payload.slug)
+        .limit(1);
+
+      const { data: existingSlugRows, error: slugError } = isEdit
+        ? await slugQuery.neq("id", id)
+        : await slugQuery;
+
+      if (slugError) throw slugError;
+      if ((existingSlugRows || []).length > 0) {
+        throw new Error("Ya existe otro producto con la misma URL. Cambia el nombre del producto para que sea distinto.");
+      }
 
       let productId = id;
 
@@ -555,6 +569,17 @@ export default function ShopProductForm() {
         if (error) throw error;
         productId = data.id;
         pushDebugLine("Producto creado correctamente.");
+      }
+
+      if (imageFiles.length > 0) {
+        for (const file of imageFiles) {
+          pushDebugLine(
+            `Procesando imagen para subida: ${file.name || "imagen"} (${formatFileSize(file.size)}).`
+          );
+          const uploaded = await uploadImageFile(file, "shop-products");
+          pushDebugLine(`Imagen subida correctamente: ${uploaded.path}`);
+          uploadedImages.push(uploaded);
+        }
       }
 
       await supabase.from("shop_product_categories").delete().eq("product_id", productId);
@@ -662,8 +687,9 @@ export default function ShopProductForm() {
       pushDebugLine("Guardado completo. Redirigiendo al listado.");
       navigate("/admin/productos");
     } catch (error) {
-      pushDebugLine(`Error al guardar: ${error.message}`);
-      alert(error.message);
+      const message = mapProductSaveError(error);
+      pushDebugLine(`Error al guardar: ${message}`);
+      alert(message);
     } finally {
       savingRef.current = false;
       setSaving(false);

@@ -77,8 +77,8 @@ export default function AdminLayout() {
       const timeoutId = setTimeout(() => {
         if (!alive) return;
         resetCache();
-        goLogin("La comprobación de acceso tardó demasiado. Vuelve a intentarlo.");
-      }, 3000);
+        goLogin("La comprobación de acceso está tardando demasiado. Revisa la conexión e inténtalo de nuevo.");
+      }, 10000);
 
       try {
         setLoading((current) => (hasUserRef.current ? current : true));
