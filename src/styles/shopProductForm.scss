@@ -206,6 +206,7 @@
 }
 
 .shop-product-form__submit {
+  order: 3;
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-start;
