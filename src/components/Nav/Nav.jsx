@@ -13,17 +13,6 @@ const categoryLinks = [
   { to: "/categoria/outlet", label: "Outlet" },
 ];
 
-
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="6.5" />
-      <path d="M16 16l4.5 4.5" />
-    </svg>
-  );
-}
-
 function CartIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -82,14 +71,6 @@ export default function Nav() {
         </nav>
 
         <div className="nav-icons" aria-label="Acciones">
-          <Link
-            to="/buscar"
-            className="nav-iconLink"
-            aria-label="Buscar productos"
-          >
-            <SearchIcon />
-          </Link>
-
           <Link
             to="/carrito"
             className="nav-iconLink"

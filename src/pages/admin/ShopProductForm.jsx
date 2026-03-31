@@ -283,7 +283,7 @@ export default function ShopProductForm() {
             .order("sort_order", { ascending: true }),
           supabase
             .from("shop_product_variants")
-            .select("id, color, size, is_active, sku")
+            .select("id, color, size, price_eur, is_active, sku")
             .eq("product_id", id),
         ]);
 
@@ -552,12 +552,13 @@ export default function ShopProductForm() {
   function handleAddVariant() {
     setVariants((current) => [
       ...current,
-      {
-        color: "",
-        size: "",
-        sku: "",
-        is_active: true,
-        ui_group_id: createVariantGroupId(),
+        {
+          color: "",
+          size: "",
+          price_eur: "",
+          sku: "",
+          is_active: true,
+          ui_group_id: createVariantGroupId(),
       },
     ]);
   }
@@ -572,6 +573,7 @@ export default function ShopProductForm() {
         {
           color: groupColor,
           size: "",
+          price_eur: "",
           sku: "",
           is_active: true,
           ui_group_id: groupId,
@@ -721,10 +723,20 @@ export default function ShopProductForm() {
           product_id: productId,
           color: variant.color?.trim() || null,
           size: variant.size?.trim() || null,
+          price_eur:
+            variant.price_eur === "" || variant.price_eur === null || variant.price_eur === undefined
+              ? null
+              : Number(variant.price_eur),
           sku: variant.sku?.trim() || null,
           is_active: variant.is_active ?? true,
         }))
-        .filter((variant) => variant.color || variant.size || variant.sku);
+        .filter(
+          (variant) =>
+            variant.color ||
+            variant.size ||
+            variant.sku ||
+            variant.price_eur !== null
+        );
 
       if (cleanedVariants.length > 0) {
         const { error: variantsError } = await supabase
@@ -1036,6 +1048,21 @@ export default function ShopProductForm() {
                                   handleVariantChange(index, "sku", event.target.value)
                                 }
                                 placeholder="Opcional"
+                              />
+                            </div>
+
+                            <div>
+                              <label htmlFor={`variant-price-${index}`}>Precio variante EUR</label>
+                              <input
+                                id={`variant-price-${index}`}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={variant.price_eur ?? ""}
+                                onChange={(event) =>
+                                  handleVariantChange(index, "price_eur", event.target.value)
+                                }
+                                placeholder="Si cambia respecto al producto"
                               />
                             </div>
 

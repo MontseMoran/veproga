@@ -55,6 +55,7 @@ export default function ProductDetail() {
               id,
               color,
               size,
+              price_eur,
               is_active,
               sku
             ),
@@ -85,6 +86,10 @@ export default function ProductDetail() {
           id: variant.id,
           color: String(variant.color || "").trim(),
           size: String(variant.size || "").trim(),
+          price:
+            variant.price_eur === null || variant.price_eur === undefined
+              ? null
+              : Number(variant.price_eur),
           is_active: Boolean(variant.is_active),
           sku: String(variant.sku || "").trim(),
         }));
@@ -197,8 +202,19 @@ export default function ProductDetail() {
     );
   }, [product?.variants, selectedColor, selectedSize]);
 
-  const requiresColorSelection = colorOptions.length > 0;
+  const requiresColorSelection = colorOptions.length > 1;
   const requiresSizeSelection = allSizes.length > 0;
+  const displayedPrice = activeVariant?.price ?? product?.price ?? 0;
+
+  useEffect(() => {
+    if (colorOptions.length !== 1) return;
+    if (!colorOptions[0]?.isAvailable) return;
+
+    const onlyColor = colorOptions[0].label;
+    if (selectedColor !== onlyColor) {
+      setSelectedColor(onlyColor);
+    }
+  }, [colorOptions, selectedColor]);
 
   useEffect(() => {
     if (!requiresSizeSelection) return;
@@ -283,7 +299,7 @@ export default function ProductDetail() {
         ].join("::"),
         slug: product.slug,
         name: product.name,
-        price: product.price,
+        price: displayedPrice,
         imageUrl: product.images[0] || "",
         isHeavyShipping: product.isHeavyShipping,
         categorySlug: product.categories?.[0]?.slug || "",
@@ -386,7 +402,7 @@ export default function ProductDetail() {
             <p className="product-detail__category">{product.categoryName}</p>
             <h1>{product.name}</h1>
             <p className="product-detail__price">
-              {product.price.toFixed(2).replace(".", ",")} €
+              {displayedPrice.toFixed(2).replace(".", ",")} €
             </p>
 
             {colorOptions.length > 0 ? (
