@@ -93,6 +93,13 @@ export default function ReturnsPolicy() {
             algunos artículos no admiten devolución, especialmente si han sido creados o
             adaptados específicamente para ti.
           </p>
+          <p className="reveal-on-scroll" style={{ "--reveal-delay": "380ms" }}>
+            La ropa interior no admite devolución.
+          </p>
+          <p className="reveal-on-scroll" style={{ "--reveal-delay": "430ms" }}>
+            Por motivos de higiene, los artículos personalizados o precintados no pueden
+            devolverse una vez han sido desprecintados.
+          </p>
         </div>
       </section>
 
