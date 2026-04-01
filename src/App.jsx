@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Nav from "./components/Nav/Nav";
 import Footer from "./components/Footer/Footer";
+import FloatingWhatsApp from "./components/FloatingWhatsApp/FloatingWhatsApp";
 import CookieBanner from "./components/CookieBanner/CookieBanner";
 import ScrollToTop from "./components/ScrollToTop";
 import About from "./pages/About";
@@ -32,6 +33,7 @@ function SiteLayout() {
       <ScrollToTop />
       <Nav />
       <Outlet />
+      <FloatingWhatsApp />
       <Footer />
       <CookieBanner />
     </div>

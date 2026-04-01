@@ -8,24 +8,15 @@ export default function Footer() {
       <div className="site-footer__inner">
         <div className="site-footer__col">
           <h3>Información</h3>
-          <a href="/#home">Home</a>
           <Link to="/quienes-somos">Sobre nosotros</Link>
           <Link to="/contacto">Contacto</Link>
           <Link to="/privacidad">Privacidad</Link>
         </div>
 
         <div className="site-footer__col">
-          <h3>Atención al cliente</h3>
-          <a href="mailto:bolboretasvalu@gmail.com">bolboretasvalu@gmail.com</a>
-          <a href="/#destacados">Productos destacados</a>
-          <a href="/#colecciones">Colecciones</a>
-        </div>
-
-        <div className="site-footer__col">
           <h3>Envíos y devoluciones</h3>
           <p>Envío gratis a partir de 60 EUR</p>
           <Link to="/politica-de-devoluciones">Política de devoluciones</Link>
-          <p>Atención personalizada</p>
         </div>
 
         <div className="site-footer__col">
