@@ -94,9 +94,33 @@
   stroke-linejoin: round;
 }
 
+.site-footer__credit {
+  width: min(94%, 1260px);
+  margin: 26px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(45, 39, 34, 0.08);
+  text-align: center;
+}
+
+.site-footer__credit p {
+  margin: 0;
+  color: rgba(45, 39, 34, 0.72);
+  line-height: 1.7;
+}
+
+.site-footer__credit a {
+  color: #8f4e1e;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-footer__credit a:hover {
+  text-decoration: underline;
+}
+
 @media (min-width: 900px) {
   .site-footer__inner {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 32px;
   }
 }

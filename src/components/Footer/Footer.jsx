@@ -57,6 +57,13 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      <div className="site-footer__credit">
+        <p>
+          ¿Necesitas una web para tu negocio?{" "}
+          <a href="mailto:app.animavet@gmail.com">Hablemos.</a>
+        </p>
+      </div>
     </footer>
   );
 }
