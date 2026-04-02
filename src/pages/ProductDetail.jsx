@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import BackLink from "../components/backLink/BackLink";
 import ShopRequestForm from "../components/ShopRequestForm/ShopRequestForm";
 import { useCart } from "../lib/cartContext";
@@ -16,6 +16,7 @@ function buildVariantKey(color, size) {
 
 export default function ProductDetail() {
   const { slug } = useParams();
+  const location = useLocation();
   const { addItem } = useCart();
 
   const [product, setProduct] = useState(null);
@@ -205,6 +206,9 @@ export default function ProductDetail() {
   const requiresColorSelection = colorOptions.length > 1;
   const requiresSizeSelection = allSizes.length > 0;
   const displayedPrice = activeVariant?.price ?? product?.price ?? 0;
+  const backTo = location.state?.backTo || (product?.categories?.[0]?.slug
+    ? `/categoria/${product.categories[0].slug}`
+    : "/tienda");
 
   useEffect(() => {
     if (colorOptions.length !== 1) return;
@@ -338,7 +342,7 @@ export default function ProductDetail() {
   return (
     <main className="product-detail">
       <div className="product-detail__back">
-        <BackLink to="/shop" />
+        <BackLink to={backTo} />
       </div>
 
       <div className="product-detail__container">

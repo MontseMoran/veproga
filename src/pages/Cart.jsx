@@ -517,12 +517,20 @@ export default function Cart() {
                     className="cart-page__item reveal-on-scroll"
                     style={{ "--reveal-delay": `${100 + index * 50}ms` }}
                   >
-                    <Link to={`/producto/${item.slug}`} className="cart-page__imageWrap">
+                    <Link
+                      to={`/producto/${item.slug}`}
+                      state={{ backTo: "/carrito" }}
+                      className="cart-page__imageWrap"
+                    >
                       {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
                     </Link>
 
                     <div className="cart-page__itemBody">
-                      <Link to={`/producto/${item.slug}`} className="cart-page__name">
+                      <Link
+                        to={`/producto/${item.slug}`}
+                        state={{ backTo: "/carrito" }}
+                        className="cart-page__name"
+                      >
                         {item.name}
                       </Link>
 

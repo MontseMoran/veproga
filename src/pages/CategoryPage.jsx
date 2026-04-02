@@ -305,7 +305,11 @@ export default function CategoryPage() {
                   className="category-page__card reveal-on-scroll"
                   style={{ "--reveal-delay": `${140 + index * 45}ms` }}
                 >
-                  <Link to={`/producto/${product.slug}`} className="category-page__imageWrap">
+                  <Link
+                    to={`/producto/${product.slug}`}
+                    state={{ backTo: `/categoria/${slug}` }}
+                    className="category-page__imageWrap"
+                  >
                     {product.imageUrl ? <img src={product.imageUrl} alt={product.name} /> : null}
                   </Link>
 
@@ -314,7 +318,11 @@ export default function CategoryPage() {
                     <p>{product.description}</p>
 
                     <div className="category-page__footer">
-                      <Link to={`/producto/${product.slug}`} className="category-page__cta">
+                      <Link
+                        to={`/producto/${product.slug}`}
+                        state={{ backTo: `/categoria/${slug}` }}
+                        className="category-page__cta"
+                      >
                         Ver producto
                       </Link>
                       <p className="category-page__price">

@@ -1,6 +1,5 @@
 ﻿// @ts-nocheck
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 declare const Deno: {
   serve: (handler: (req: Request) => Response | Promise<Response>) => void;
@@ -22,9 +21,6 @@ type InquiryPayload = {
   phone?: string;
   amount?: number | null;
   message?: string;
-  cat_id?: string | null;
-  cat_name?: string | null;
-  lang?: string;
   inquiry_id?: string | null;
   created_at?: string | null;
   product_id?: string | null;
@@ -45,27 +41,14 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function getModeLabel(mode?: string, lang?: string) {
-  const isCat = String(lang || "").toLowerCase().startsWith("cat");
+function getModeLabel(mode?: string) {
   const normalized = String(mode || "").toLowerCase();
 
-  if (isCat) {
-    if (normalized === "adoption") return "adoptar";
-    if (normalized === "sponsor") return "amadrinar";
-    if (normalized === "member") return "fer-se soci";
-    if (normalized === "volunteer") return "fer voluntariat";
-    if (normalized === "donation") return "fer una donacio";
-    if (normalized === "shop_request") return "demanar un producte de botiga";
-    return "enviar una sollicitud";
+  if (normalized === "shop_request") {
+    return "Ha enviado una peticion de producto";
   }
 
-  if (normalized === "adoption") return "adoptar";
-  if (normalized === "sponsor") return "amadrinar";
-  if (normalized === "member") return "hacerse socio";
-  if (normalized === "volunteer") return "hacer voluntariado";
-  if (normalized === "donation") return "hacer una donacion";
-  if (normalized === "shop_request") return "pedir un producto de tienda";
-  return "enviar una solicitud";
+  return "Ha enviado una consulta";
 }
 
 async function verifyTurnstileToken(token?: string | null, remoteIp?: string | null) {
@@ -105,19 +88,75 @@ async function verifyTurnstileToken(token?: string | null, remoteIp?: string | n
   return { ok: true, enabled: true };
 }
 
+function buildSubject(payload: InquiryPayload) {
+  const person = escapeHtml(payload.name || "Una persona");
+  const modeLabel = getModeLabel(payload.mode);
+  const productName = payload.product_name ? `: ${escapeHtml(payload.product_name)}` : "";
+  return `Bolboretas & Valu: ${person} ${modeLabel}${productName}`;
+}
+
+function buildHtml(payload: InquiryPayload) {
+  const person = escapeHtml(payload.name || "Una persona");
+  const isShopRequest = String(payload.mode || "").toLowerCase() === "shop_request";
+  const modeLabel = escapeHtml(getModeLabel(payload.mode));
+  const productName = escapeHtml(payload.product_name || "-");
+  const requestedItem = escapeHtml(payload.requested_item || "-");
+  const requestedSize = escapeHtml(payload.requested_size || "-");
+  const notes = escapeHtml(payload.notes || payload.message || "-").replaceAll("\n", "<br/>");
+
+  if (isShopRequest) {
+    return `
+      <h2>Hola Bolboretas & Valu,</h2>
+      <p><strong>${person}</strong> ${modeLabel}.</p>
+      <hr />
+      <p><strong>Nombre:</strong> ${person}</p>
+      <p><strong>Email:</strong> ${escapeHtml(payload.email || "-")}</p>
+      <p><strong>Telefono:</strong> ${escapeHtml(payload.phone || "-")}</p>
+      <p><strong>Producto:</strong> ${productName}</p>
+      <p><strong>Que necesita:</strong> ${requestedItem}</p>
+      <p><strong>Talla:</strong> ${requestedSize}</p>
+      ${payload.category_slug ? `<p><strong>Categoria:</strong> ${escapeHtml(payload.category_slug)}</p>` : ""}
+      ${payload.amount != null ? `<p><strong>Importe:</strong> ${escapeHtml(String(payload.amount))}</p>` : ""}
+      <p><strong>Notas:</strong></p>
+      <p>${notes}</p>
+      ${(payload.created_at || payload.inquiry_id) ? `
+        <hr />
+        <p style="color:#666;font-size:12px;">
+          Referencia interna${payload.created_at ? ` | Fecha: ${escapeHtml(payload.created_at)}` : ""}${payload.inquiry_id ? ` | ID: ${escapeHtml(payload.inquiry_id)}` : ""}
+        </p>
+      ` : ""}
+    `;
+  }
+
+  return `
+    <h2>Hola Bolboretas & Valu,</h2>
+    <p><strong>${person}</strong> ${modeLabel}.</p>
+    <hr />
+    <p><strong>Nombre:</strong> ${person}</p>
+    <p><strong>Email:</strong> ${escapeHtml(payload.email || "-")}</p>
+    <p><strong>Telefono:</strong> ${escapeHtml(payload.phone || "-")}</p>
+    ${payload.amount != null ? `<p><strong>Importe:</strong> ${escapeHtml(String(payload.amount))}</p>` : ""}
+    <p><strong>Mensaje:</strong></p>
+    <p>${escapeHtml(payload.message || payload.notes || "-").replaceAll("\n", "<br/>")}</p>
+    ${(payload.created_at || payload.inquiry_id) ? `
+      <hr />
+      <p style="color:#666;font-size:12px;">
+        Referencia interna${payload.created_at ? ` | Fecha: ${escapeHtml(payload.created_at)}` : ""}${payload.inquiry_id ? ` | ID: ${escapeHtml(payload.inquiry_id)}` : ""}
+      </p>
+    ` : ""}
+  `;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -127,19 +166,12 @@ Deno.serve(async (req: Request) => {
     const captchaCheck = await verifyTurnstileToken(payload?.captcha_token, remoteIp);
 
     if (!captchaCheck.ok) {
-      return new Response(
-        JSON.stringify({ error: captchaCheck.error }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: captchaCheck.error }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const senderEmail =
       Deno.env.get("INQUIRY_SENDER_EMAIL") ||
@@ -151,13 +183,24 @@ Deno.serve(async (req: Request) => {
       "bolboretasvalu@gmail.com";
 
     if (!resendApiKey) {
-      return new Response(
-        JSON.stringify({ error: "Missing RESEND_API_KEY secret" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Missing RESEND_API_KEY secret" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!payload?.name || !payload?.email) {
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (String(payload.mode || "").toLowerCase() === "shop_request" && !payload?.requested_item) {
+      return new Response(JSON.stringify({ error: "Missing required shop request fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const recipients = recipientsRaw
@@ -166,87 +209,11 @@ Deno.serve(async (req: Request) => {
       .filter(Boolean);
 
     if (!recipients.length) {
-      return new Response(
-        JSON.stringify({ error: "No recipients configured" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "No recipients configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-
-    let inquiryId = payload.inquiry_id || null;
-    let inquiryCreatedAt = payload.created_at || null;
-
-    if (String(payload.mode || "").toLowerCase() === "shop_request") {
-      if (!payload.name || !payload.email || !payload.requested_item) {
-        return new Response(
-          JSON.stringify({ error: "Missing required shop request fields" }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      const shopRequestInsert = {
-        product_id: payload.product_id || null,
-        product_name: payload.product_name || payload.cat_name || null,
-        category_slug: payload.category_slug || null,
-        requested_item: payload.requested_item || null,
-        requested_size: payload.requested_size || null,
-        notes: payload.notes || null,
-        name: payload.name,
-        email: payload.email,
-        phone: payload.phone || null,
-        lang: payload.lang || "es",
-      };
-
-      const { data: createdRequest, error: insertError } = await supabase
-        .from("shop_requests")
-        .insert([shopRequestInsert])
-        .select("id, created_at")
-        .single();
-
-      if (insertError) {
-        return new Response(
-          JSON.stringify({ error: insertError.message }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      inquiryId = createdRequest?.id || inquiryId;
-      inquiryCreatedAt = createdRequest?.created_at || inquiryCreatedAt;
-    }
-
-    const modeLabel = getModeLabel(payload.mode, payload.lang);
-    const person = escapeHtml(payload.name || "Una persona");
-    const catName = escapeHtml(payload.cat_name || payload.product_name || "un gato");
-    const subject = `Bolboretas & Valu: ${person} quiere ${modeLabel}`;
-
-    const html = `
-      <h2>Hola Bolboretas & Valu,</h2>
-      <p><strong>${person}</strong> quiere <strong>${escapeHtml(modeLabel)}</strong>${payload.cat_name || payload.product_name ? ` a <strong>${catName}</strong>` : ""}.</p>
-      <hr />
-      <p><strong>Nombre:</strong> ${person}</p>
-      <p><strong>Email:</strong> ${escapeHtml(payload.email || "-")}</p>
-      <p><strong>Telefono:</strong> ${escapeHtml(payload.phone || "-")}</p>
-      <p><strong>Producto:</strong> ${escapeHtml(payload.product_name || payload.cat_name || "-")}</p>
-      ${payload.requested_item ? `<p><strong>Qué necesita:</strong> ${escapeHtml(payload.requested_item)}</p>` : ""}
-      ${payload.requested_size ? `<p><strong>Talla:</strong> ${escapeHtml(payload.requested_size)}</p>` : ""}
-      ${payload.amount != null ? `<p><strong>Importe:</strong> ${escapeHtml(String(payload.amount))}</p>` : ""}
-      <p><strong>Mensaje:</strong></p>
-      <p>${escapeHtml(payload.message || payload.notes || "-").replaceAll("\n", "<br/>")}</p>
-      ${(inquiryCreatedAt || inquiryId) ? `
-        <hr />
-        <p style="color:#666;font-size:12px;">
-          Referencia interna${inquiryCreatedAt ? ` | Fecha: ${escapeHtml(inquiryCreatedAt)}` : ""}${inquiryId ? ` | ID: ${escapeHtml(inquiryId)}` : ""}
-        </p>
-      ` : ""}
-    `;
 
     const resendResp = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -257,42 +224,29 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         from: senderEmail,
         to: recipients,
-        subject,
+        subject: buildSubject(payload),
         reply_to: payload.email || undefined,
-        html,
+        html: buildHtml(payload),
       }),
     });
 
     const resendData = await resendResp.json();
+
     if (!resendResp.ok) {
-      return new Response(
-        JSON.stringify({ error: "Resend error", details: resendData }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Resend error", details: resendData }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        email_id: resendData?.id || null,
-        inquiry_id: inquiryId,
-        created_at: inquiryCreatedAt,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ ok: true, email_id: resendData?.id || null }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: "Unexpected error", details: String(error) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Unexpected error", details: String(error) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

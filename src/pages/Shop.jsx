@@ -422,7 +422,11 @@ export default function Shop() {
 
                     <div className="shop__productFooter">
                       <div className="shop__productActions">
-                        <Link to={`/producto/${product.slug}`} className="shop__cta">
+                        <Link
+                          to={`/producto/${product.slug}`}
+                          state={{ backTo: "/tienda" }}
+                          className="shop__cta"
+                        >
                           {COPY.cta}
                         </Link>
                       </div>
