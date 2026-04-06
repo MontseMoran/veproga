@@ -54,6 +54,16 @@ function mapProductSaveError(error) {
   return message || "No se pudo guardar el producto.";
 }
 
+function mapDeleteProductFunctionError(error) {
+  const message = String(error?.message || "").trim();
+
+  if (message.includes("Edge Function returned a non-2xx status code")) {
+    return "No se pudo borrar la imagen del producto.";
+  }
+
+  return message || "No se pudo borrar la imagen del producto.";
+}
+
 function readDraft(key) {
   try {
     const raw = window.localStorage.getItem(key);
@@ -819,7 +829,28 @@ export default function ShopProductForm() {
       pushDebugLine("Guardado completo. Redirigiendo al listado.");
       navigate("/admin/productos");
     } catch (error) {
-      const message = mapProductSaveError(error);
+      if (uploadedImages.length > 0) {
+        pushDebugLine("Falló el guardado. Se intentará limpiar del bucket las imágenes nuevas.");
+
+        for (const image of uploadedImages) {
+          try {
+            const { error: cleanupError } = await supabase.functions.invoke("delete-product", {
+              body: { path: image.path },
+            });
+
+            if (cleanupError) {
+              console.warn("No se pudo limpiar una imagen subida tras error:", cleanupError.message);
+            }
+          } catch (cleanupError) {
+            console.warn("No se pudo limpiar una imagen subida tras error:", cleanupError);
+          }
+        }
+      }
+
+      const message =
+        String(error?.message || "").includes("Edge Function returned a non-2xx status code")
+          ? mapDeleteProductFunctionError(error)
+          : mapProductSaveError(error);
       pushDebugLine(`Error al guardar: ${message}`);
       alert(message);
     } finally {

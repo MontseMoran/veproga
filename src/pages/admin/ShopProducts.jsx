@@ -2,6 +2,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
+function getDeleteProductErrorMessage(error) {
+  const message = String(error?.message || "").trim();
+
+  if (message.includes("Edge Function returned a non-2xx status code")) {
+    return "No se pudo borrar el producto. Revisa si tiene imágenes, variantes o relaciones pendientes y vuelve a intentarlo.";
+  }
+
+  return message || "No se pudo borrar el producto.";
+}
+
 export default function ShopProducts() {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -10,6 +20,7 @@ export default function ShopProducts() {
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
   const [subcategoriesReady, setSubcategoriesReady] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [pendingVisibilityId, setPendingVisibilityId] = useState("");
 
   const filteredSubcategories = useMemo(() => {
     if (!selectedCategoryId) {
@@ -196,7 +207,35 @@ export default function ShopProducts() {
       setItems((current) => current.filter((item) => item.id !== id));
     } catch (error) {
       console.error(error);
+      alert(getDeleteProductErrorMessage(error));
+    }
+  }
+
+  async function handleToggleVisibility(id, nextIsActive) {
+    const actionLabel = nextIsActive ? "mostrar" : "ocultar";
+
+    if (!confirm(`Se va a ${actionLabel} este producto.`)) {
+      return;
+    }
+
+    try {
+      setPendingVisibilityId(id);
+
+      const { error } = await supabase
+        .from("shop_products")
+        .update({ is_active: nextIsActive })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setItems((current) =>
+        current.map((item) => (item.id === id ? { ...item, is_active: nextIsActive } : item))
+      );
+    } catch (error) {
+      console.error(error);
       alert(error.message);
+    } finally {
+      setPendingVisibilityId("");
     }
   }
 
@@ -331,9 +370,11 @@ export default function ShopProducts() {
               </p>
 
               <div className="actions">
-                <Link to={`/producto/${item.slug}`} className="admin-action admin-action--ghost">
-                  Ver en web
-                </Link>
+                {item.is_active ? (
+                  <Link to={`/producto/${item.slug}`} className="admin-action admin-action--ghost">
+                    Ver en web
+                  </Link>
+                ) : null}
 
                 <Link
                   to={`/admin/productos/${item.id}/editar`}
@@ -341,6 +382,19 @@ export default function ShopProducts() {
                 >
                   Editar
                 </Link>
+
+                <button
+                  type="button"
+                  className="admin-action admin-action--ghost"
+                  onClick={() => handleToggleVisibility(item.id, !item.is_active)}
+                  disabled={pendingVisibilityId === item.id}
+                >
+                  {pendingVisibilityId === item.id
+                    ? "Guardando..."
+                    : item.is_active
+                      ? "Ocultar"
+                      : "Mostrar"}
+                </button>
 
                 <button
                   type="button"

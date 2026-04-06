@@ -5,6 +5,7 @@ const WHATSAPP_URL = "https://wa.me/34647080364";
 
 export default function FloatingWhatsApp() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
 
   useEffect(() => {
     function handleScroll() {
@@ -17,8 +18,31 @@ export default function FloatingWhatsApp() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const footer = document.querySelector(".site-footer");
+    if (!footer || typeof IntersectionObserver === "undefined") {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsFooterVisible(entry.isIntersecting);
+      },
+      {
+        root: null,
+        threshold: 0.05,
+      }
+    );
+
+    observer.observe(footer);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const shouldShow = isVisible && !isFooterVisible;
+
   return (
-    <div className={`floating-whatsapp ${isVisible ? "is-visible" : ""}`}>
+    <div className={`floating-whatsapp ${shouldShow ? "is-visible" : ""}`}>
       <a
         className="floating-whatsapp__bubble"
         href={WHATSAPP_URL}

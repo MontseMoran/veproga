@@ -9,6 +9,19 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const bucketName = Deno.env.get("SUPABASE_BUCKET") || "store-assets";
+
+async function removeStoragePaths(supabase, paths: string[]) {
+  const cleanPaths = Array.from(new Set((paths || []).filter(Boolean)));
+
+  if (cleanPaths.length === 0) {
+    return null;
+  }
+
+  const { error } = await supabase.storage.from(bucketName).remove(cleanPaths);
+  return error || null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -32,6 +45,15 @@ Deno.serve(async (req: Request) => {
 
   //  BORRAR SOLO 1 IMAGEN
   if (singlePath) {
+    const { error: removeSinglePathError } = await removeStoragePaths(supabase, [singlePath]);
+
+    if (removeSinglePathError) {
+      return new Response(JSON.stringify({ error: removeSinglePathError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { error: deleteImageRowError } = await supabase
       .from("shop_product_images")
       .delete()
@@ -39,17 +61,6 @@ Deno.serve(async (req: Request) => {
 
     if (deleteImageRowError) {
       return new Response(JSON.stringify({ error: deleteImageRowError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { error } = await supabase.storage
-      .from("store-assets")
-      .remove([singlePath]);
-
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -87,9 +98,7 @@ Deno.serve(async (req: Request) => {
     const paths = images.map((img) => img.path).filter(Boolean);
 
     if (paths.length) {
-      const { error: removeError } = await supabase.storage
-        .from("store-assets")
-        .remove(paths);
+      const removeError = await removeStoragePaths(supabase, paths);
 
       if (removeError) {
         return new Response(JSON.stringify({ error: removeError.message }), {
@@ -121,6 +130,32 @@ Deno.serve(async (req: Request) => {
 
   if (deleteCategoriesError) {
     return new Response(JSON.stringify({ error: deleteCategoriesError.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  //  BORRAR RELACIONES SUBCATEGORÍAS
+  const { error: deleteSubcategoriesError } = await supabase
+    .from("shop_product_subcategories")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteSubcategoriesError) {
+    return new Response(JSON.stringify({ error: deleteSubcategoriesError.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  //  BORRAR VARIANTES
+  const { error: deleteVariantsError } = await supabase
+    .from("shop_product_variants")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteVariantsError) {
+    return new Response(JSON.stringify({ error: deleteVariantsError.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
