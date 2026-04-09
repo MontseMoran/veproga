@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
 
   //  BORRAR SOLO 1 IMAGEN
   if (singlePath) {
-    const { error: removeSinglePathError } = await removeStoragePaths(supabase, [singlePath]);
+    const removeSinglePathError = await removeStoragePaths(supabase, [singlePath]);
 
     if (removeSinglePathError) {
       return new Response(JSON.stringify({ error: removeSinglePathError.message }), {

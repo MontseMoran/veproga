@@ -40,14 +40,7 @@ export default function ProductDetail() {
         const { data, error } = await supabase
           .from("shop_products")
           .select(`
-            id,
-            slug,
-            sku,
-            name,
-            description,
-            price_eur,
-            is_pack,
-            is_heavy_shipping,
+            *,
             shop_product_images (
               image_url,
               sort_order
@@ -101,6 +94,7 @@ export default function ProductDetail() {
           sku: data.sku,
           name: data.name,
           description: data.description || "",
+          material: String(data.material || "").trim(),
           price: Number(data.price_eur || 0),
           isPack: Boolean(data.is_pack),
           isHeavyShipping: Boolean(data.is_heavy_shipping),
@@ -483,6 +477,11 @@ export default function ProductDetail() {
             </div>
             {addedMsg ? <p className="product-detail__addedMsg">{addedMsg}</p> : null}
             <p className="product-detail__description">{product.description}</p>
+            {product.material ? (
+              <p className="product-detail__description">
+                <strong>Material:</strong> {product.material}
+              </p>
+            ) : null}
 
             <div
               className="product-detail__request reveal-on-scroll"

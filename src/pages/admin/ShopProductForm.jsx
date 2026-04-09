@@ -157,6 +157,7 @@ export default function ShopProductForm() {
     slug: "",
     name: "",
     description: "",
+    material: "",
     price_eur: "",
     is_pack: false,
     is_heavy_shipping: false,
@@ -334,6 +335,7 @@ export default function ShopProductForm() {
           slug: productRow.slug || "",
           name: productRow.name || "",
           description: productRow.description || "",
+          material: productRow.material || "",
           price_eur: productRow.price_eur ?? "",
           is_pack: productRow.is_pack ?? false,
           is_heavy_shipping: productRow.is_heavy_shipping ?? false,
@@ -676,6 +678,7 @@ export default function ShopProductForm() {
         slug: resolvedSlug,
         name: form.name.trim(),
         description: form.description.trim() || null,
+        material: form.material.trim() || null,
         price_eur: form.price_eur === "" ? null : Number(form.price_eur),
         is_pack: form.is_pack,
         is_heavy_shipping: form.is_heavy_shipping,
@@ -971,6 +974,17 @@ export default function ShopProductForm() {
               name="description"
               value={form.description}
               onChange={handleChange}
+            />
+          </div>
+
+          <div className="full">
+            <label htmlFor="material">Material</label>
+            <input
+              id="material"
+              name="material"
+              value={form.material}
+              onChange={handleChange}
+              placeholder="Algodón, lino, poliéster..."
             />
           </div>
 
