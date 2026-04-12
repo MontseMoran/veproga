@@ -19,7 +19,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [addedMessage, setAddedMessage] = useState("");
-
+const [activeImageIndex, setActiveImageIndex] = useState(0);
   useEffect(() => {
     let active = true;
 
@@ -105,6 +105,7 @@ export default function ProductDetail() {
         });
         setSelectedColor(variants[0]?.color || "");
         setSelectedSize(variants[0]?.size || "");
+        setActiveImageIndex(0);
       } catch (loadError) {
         console.error("Error al cargar el producto:", loadError);
         if (!active) return;
@@ -215,13 +216,41 @@ export default function ProductDetail() {
           }}
         >
           <div>
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                style={{ width: "100%", borderRadius: 18, display: "block", background: "#f6f2ee" }}
-              />
-            ) : (
+           {product.images?.length > 0 ? (
+  <div className="product-detail__gallery">
+    <img
+      src={product.images[activeImageIndex]?.image_url}
+      alt={product.name}
+      className="product-detail__mainImage"
+    />
+
+    {product.images.length > 1 && (
+      <>
+        <button
+          onClick={() =>
+            setActiveImageIndex((prev) =>
+              prev === 0 ? product.images.length - 1 : prev - 1
+            )
+          }
+          className="product-detail__arrow product-detail__arrow--left"
+        >
+          ‹
+        </button>
+
+        <button
+          onClick={() =>
+            setActiveImageIndex((prev) =>
+              prev === product.images.length - 1 ? 0 : prev + 1
+            )
+          }
+          className="product-detail__arrow product-detail__arrow--right"
+        >
+          ›
+        </button>
+      </>
+    )}
+  </div>
+) : (
               <div
                 style={{
                   width: "100%",

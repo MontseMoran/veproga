@@ -296,6 +296,44 @@
   transform: none;
   outline: none;
 }
+.product-detail__gallery {
+  position: relative;
+}
+
+.product-detail__mainImage {
+  width: 100%;
+  border-radius: 18px;
+  display: block;
+  background: #f6f2ee;
+}
+
+.product-detail__arrow {
+  position: absolute;
+  top: 50%;
+ 
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+
+  color: #000;       // ← flecha negra
+  font-size: 18px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-detail__arrow--left {
+  left: 10px;
+}
+
+.product-detail__arrow--right {
+  right: 10px;
+}
 @media (min-width: 900px) {
   .product-detail {
     padding: 40px 0;
