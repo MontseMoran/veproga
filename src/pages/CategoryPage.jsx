@@ -68,12 +68,15 @@ export default function CategoryPage() {
           .order("created_at", { ascending: false });
 
         if (productsError) throw productsError;
-
         let subcategoriesData = [];
         let productSubcategoryRows = [];
+        let subcategoriesErrorMessage = "";
+        let productSubcategoriesErrorMessage = "";
 
-        try {
-       const [{ data: subcategoryRows }, { data: productSubcategoryData }] = await Promise.all([
+    const [
+  { data: subcategoryRows, error: subcategoryRowsError },
+  { data: productSubcategoryData, error: productSubcategoryDataError },
+] = await Promise.all([
   supabase
     .from("shop_subcategories")
     .select("id, category_id, slug, name, sort_order")
@@ -85,29 +88,28 @@ export default function CategoryPage() {
     .select("product_id, subcategory_id"),
 ]);
 
-          subcategoriesData = subcategoryRows || [];
-          productSubcategoryRows = productSubcategoryData || [];
-        } catch (error) {
-          console.error("Error real al cargar subcategorias:", error);
-        }
+subcategoriesData = subcategoryRows || [];
+productSubcategoryRows = productSubcategoryData || [];
+subcategoriesErrorMessage = subcategoryRowsError?.message || "";
+productSubcategoriesErrorMessage = productSubcategoryDataError?.message || "";
 
-  const subcategoryMap = {};
-(subcategoriesData || []).forEach((subcategory) => {
-  subcategoryMap[subcategory.id] = subcategory;
-});
+        const subcategoryMap = {};
+        (subcategoriesData || []).forEach((subcategory) => {
+          subcategoryMap[subcategory.id] = subcategory;
+        });
 
 
-      const subcategoriesByProductId = {};
-(productSubcategoryRows || []).forEach((row) => {
-  const subcategory = subcategoryMap[row.subcategory_id];
-  if (!subcategory) return;
+        const subcategoriesByProductId = {};
+        (productSubcategoryRows || []).forEach((row) => {
+          const subcategory = subcategoryMap[row.subcategory_id];
+          if (!subcategory) return;
 
-  if (!subcategoriesByProductId[row.product_id]) {
-    subcategoriesByProductId[row.product_id] = [];
-  }
+          if (!subcategoriesByProductId[row.product_id]) {
+            subcategoriesByProductId[row.product_id] = [];
+          }
 
-  subcategoriesByProductId[row.product_id].push(subcategory);
-});
+          subcategoriesByProductId[row.product_id].push(subcategory);
+        });
 
         const normalizedProducts = (productsData || [])
           .filter((product) =>
@@ -166,20 +168,20 @@ export default function CategoryPage() {
     );
   }, [products, selectedSubcategoryId]);
 
- const filterOptions = useMemo(() => {
-  return subcategories.map((subcategory) => ({
-    id: subcategory.id,
-    name: subcategory.name,
-  }));
-}, [subcategories]);
+  const filterOptions = useMemo(() => {
+    return subcategories.map((subcategory) => ({
+      id: subcategory.id,
+      name: subcategory.name,
+    }));
+  }, [subcategories]);
 
-const activeSubcategory = useMemo(
-  () =>
-    filterOptions.find(
-      (subcategory) => subcategory.id === selectedSubcategoryId
-    ) || null,
-  [filterOptions, selectedSubcategoryId]
-);
+  const activeSubcategory = useMemo(
+    () =>
+      filterOptions.find(
+        (subcategory) => subcategory.id === selectedSubcategoryId
+      ) || null,
+    [filterOptions, selectedSubcategoryId]
+  );
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(visibleProducts.length / PRODUCTS_PER_PAGE)),
@@ -203,9 +205,9 @@ const activeSubcategory = useMemo(
     return visibleProducts.slice(start, start + PRODUCTS_PER_PAGE);
   }, [currentPage, visibleProducts]);
 
- useEffect(() => {
-  setCurrentPage(1);
-}, [slug, selectedSubcategoryId]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [slug, selectedSubcategoryId]);
 
   useEffect(() => {
     setCurrentPage((current) => Math.min(current, totalPages));
@@ -273,7 +275,7 @@ const activeSubcategory = useMemo(
           className="category-page__header reveal-on-scroll"
           style={{ "--reveal-delay": "40ms" }}
         >
-          
+
           <p className="category-page__breadcrumb">
             {category.name}
             {selectedSubcategoryId === "all" ? " > Todo" : ""}
@@ -282,17 +284,19 @@ const activeSubcategory = useMemo(
           <h1>{category.name}</h1>
           <p className="category-page__subtitle">Explora por subcategoria</p>
         </header>
-<pre style={{ fontSize: "12px", padding: "8px", background: "#f5f5f5" }}>
-  {JSON.stringify({
-    subcategories: subcategories.length,
-    products: products.length,
-    filterOptions: filterOptions.length,
-    productsWithSubcategories: products.filter(
-  (product) => product.subcategories.length > 0
-).length,
-firstProductSubcategories: products[0]?.subcategories || [],
-  }, null, 2)}
-</pre>
+        <pre style={{ fontSize: "12px", padding: "8px", background: "#f5f5f5" }}>
+          {JSON.stringify({
+            subcategories: subcategories.length,
+            products: products.length,
+            filterOptions: filterOptions.length,
+            productsWithSubcategories: products.filter(
+              (product) => product.subcategories.length > 0
+            ).length,
+            firstProductSubcategories: products[0]?.subcategories || [],
+            subcategoriesErrorMessage,
+productSubcategoriesErrorMessage,
+          }, null, 2)}
+        </pre>
         {filterOptions.length > 0 ? (
           <div
             className="category-page__filtersWrap reveal-on-scroll"
@@ -302,7 +306,7 @@ firstProductSubcategories: products[0]?.subcategories || [],
               <button
                 type="button"
                 className={`category-page__filter ${selectedSubcategoryId === "all" ? "is-active" : ""}`}
-onClick={() => setSelectedSubcategoryId("all")}
+                onClick={() => setSelectedSubcategoryId("all")}
               >
                 Todo
               </button>
