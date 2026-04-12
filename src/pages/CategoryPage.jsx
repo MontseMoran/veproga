@@ -188,14 +188,18 @@ export default function CategoryPage() {
     };
   }, [slug]);
 
-  const visibleProducts = useMemo(() => {
-    if (selectedSubcategory === "") return [];
-    if (selectedSubcategory === "all") return products;
+const visibleProducts = useMemo(() => {
+  if (selectedSubcategory === "") return [];
+  if (selectedSubcategory === "all") return products;
 
-    return products.filter((product) =>
-      product.subcategories.some((subcategory) => subcategory.slug === selectedSubcategory)
-    );
-  }, [products, selectedSubcategory]);
+  const normalizedSelected = slugifyValue(selectedSubcategory);
+
+  return products.filter((product) =>
+    product.subcategories.some(
+      (subcategory) => slugifyValue(subcategory.slug || subcategory.name) === normalizedSelected
+    )
+  );
+}, [products, selectedSubcategory]);
 
   const filterOptions = useMemo(() => {
     if (subcategories.length > 0) {
