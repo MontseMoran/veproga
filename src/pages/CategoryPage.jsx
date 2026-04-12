@@ -9,10 +9,21 @@ const CATEGORY_SKELETON_CARDS = Array.from({ length: PRODUCTS_PER_PAGE }, (_, in
 const CATEGORY_SKELETON_FILTERS = Array.from({ length: 6 }, (_, index) => index);
 
 function slugifyValue(value) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+  const text = String(value || "").toLowerCase().trim();
+
+  const safeText =
+    typeof text.normalize === "function"
+      ? text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      : text
+          .replaceAll("á", "a")
+          .replaceAll("é", "e")
+          .replaceAll("í", "i")
+          .replaceAll("ó", "o")
+          .replaceAll("ú", "u")
+          .replaceAll("ü", "u")
+          .replaceAll("ñ", "n");
+
+  return safeText
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
@@ -127,7 +138,6 @@ export default function CategoryPage() {
           productSubcategoryRows = productSubcategoryData || [];
         } catch (error) {
   console.error("Error real al cargar subcategorias:", error);
-  throw error;
 }
 
         const subcategoriesByProductId = {};
@@ -344,9 +354,9 @@ const activeSubcategory = useMemo(
                 <button
                   key={subcategory.id}
                   type="button"
-                  className={`category-page__filter ${
-                    selectedSubcategory === subcategory.slug ? "is-active" : ""
-                  }`}
+                 className={`category-page__filter ${
+  slugifyValue(selectedSubcategory) === slugifyValue(subcategory.slug) ? "is-active" : ""
+}`}
                   onClick={() => setSelectedSubcategory(subcategory.slug)}
                 >
                   {subcategory.name}
