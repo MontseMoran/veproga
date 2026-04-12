@@ -292,7 +292,11 @@ const activeSubcategory = useMemo(
   {JSON.stringify({
     subcategories: subcategories.length,
     products: products.length,
-    filterOptions: filterOptions.length
+    filterOptions: filterOptions.length,
+    productsWithSubcategories: products.filter(
+  (product) => product.subcategories.length > 0
+).length,
+firstProductSubcategories: products[0]?.subcategories || [],
   }, null, 2)}
 </pre>
         {filterOptions.length > 0 ? (
