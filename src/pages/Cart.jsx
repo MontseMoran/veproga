@@ -192,6 +192,7 @@ export default function Cart() {
   const checkoutPanelRef = useRef(null);
   const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
   const captchaValidated = !captchaEnabled || Boolean(captchaToken);
+  const isMobileViewportRef = useRef(false);
 
   function getCaptchaTokenValue() {
     if (captchaToken) {
@@ -279,10 +280,12 @@ export default function Cart() {
           return;
         }
 
+        isMobileViewportRef.current = window.matchMedia("(max-width: 599px)").matches;
+
         turnstileWidgetIdRef.current = window.turnstile.render(container, {
           sitekey: TURNSTILE_SITE_KEY,
           theme: "light",
-          size: "flexible",
+          size: isMobileViewportRef.current ? "normal" : "flexible",
           appearance: "always",
           callback: (token) => setCaptchaToken(token || ""),
           "expired-callback": () => setCaptchaToken(""),
@@ -404,6 +407,20 @@ export default function Cart() {
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !showCheckoutForm || !window.turnstile) return;
     if (turnstileWidgetIdRef.current === null) return;
+
+    const isMobileViewport = window.matchMedia("(max-width: 599px)").matches;
+    if (isMobileViewport !== isMobileViewportRef.current) {
+      const container =
+        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+      if (container) {
+        window.turnstile.remove(turnstileWidgetIdRef.current);
+        turnstileWidgetIdRef.current = null;
+        container.innerHTML = "";
+        delete container.dataset.rendered;
+        setCaptchaReady(false);
+      }
+      return;
+    }
 
     setCaptchaToken("");
     window.turnstile.reset(turnstileWidgetIdRef.current);
