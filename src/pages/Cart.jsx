@@ -8,6 +8,7 @@ import "../styles/cart.scss";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 const TURNSTILE_SCRIPT_ID = "cf-turnstile-script";
+const TURNSTILE_ENABLED = import.meta.env.VITE_TURNSTILE_ENABLED === "true";
 
 const PAYMENT_OPTIONS = [
   { value: "bizum", label: "Bizum" },
@@ -184,14 +185,14 @@ export default function Cart() {
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_SITE_KEY);
+  const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_ENABLED || !TURNSTILE_SITE_KEY);
   const [captchaLoadError, setCaptchaLoadError] = useState("");
   const turnstileContainerId = "cart-turnstile";
   const turnstileWidgetIdRef = useRef(null);
   const turnstileContainerRef = useRef(null);
   const checkoutPanelRef = useRef(null);
-const captchaEnabled = false;
-const captchaValidated = true;
+  const captchaEnabled = TURNSTILE_ENABLED && Boolean(TURNSTILE_SITE_KEY);
+  const captchaValidated = !captchaEnabled || Boolean(captchaToken);
   const isMobileViewportRef = useRef(false);
 
   function getCaptchaTokenValue() {
@@ -225,7 +226,7 @@ const captchaValidated = true;
   }, [deliveryMethod]);
 
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY || !showCheckoutForm) return undefined;
+    if (!captchaEnabled || !showCheckoutForm) return undefined;
 
     let cancelled = false;
     let loadTimeoutId = null;
@@ -402,10 +403,10 @@ const captchaValidated = true;
       window.removeEventListener("pageshow", handleViewportChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [showCheckoutForm, turnstileContainerId]);
+  }, [captchaEnabled, showCheckoutForm, turnstileContainerId]);
 
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY || !showCheckoutForm || !window.turnstile) return;
+    if (!captchaEnabled || !showCheckoutForm || !window.turnstile) return;
     if (turnstileWidgetIdRef.current === null) return;
 
     const isMobileViewport = window.matchMedia("(max-width: 599px)").matches;
@@ -424,7 +425,7 @@ const captchaValidated = true;
 
     setCaptchaToken("");
     window.turnstile.reset(turnstileWidgetIdRef.current);
-  }, [deliveryMethod, showCheckoutForm]);
+  }, [captchaEnabled, deliveryMethod, showCheckoutForm]);
 
   useEffect(() => {
     if (!showCheckoutForm || !checkoutPanelRef.current) return;
@@ -555,7 +556,7 @@ const captchaValidated = true;
     setOrderError("");
     setOrderSuccess("");
 
-    const resolvedCaptchaToken = null;
+    const resolvedCaptchaToken = captchaEnabled ? getCaptchaTokenValue() : null;
 
     if (!items.length) {
       setOrderError("Tu carrito está vacío.");
@@ -674,7 +675,7 @@ const captchaValidated = true;
       warning || "Pedido enviado correctamente. Ya puedes descargar el albarán del pedido."
     );
 
-    if (TURNSTILE_SITE_KEY && window.turnstile && turnstileWidgetIdRef.current !== null) {
+    if (captchaEnabled && window.turnstile && turnstileWidgetIdRef.current !== null) {
       window.turnstile.reset(turnstileWidgetIdRef.current);
     }
   }

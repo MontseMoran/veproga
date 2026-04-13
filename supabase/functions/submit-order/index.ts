@@ -32,6 +32,7 @@ function paymentLabel(value?: string) {
 const FREE_SHIPPING_THRESHOLD = 60;
 const STANDARD_SHIPPING_EUR = 4.95;
 const HEAVY_SHIPPING_EUR = 7.95;
+const TURNSTILE_ENABLED = Deno.env.get("TURNSTILE_ENABLED") === "true";
 
 function isHeavyShippingItem(item?: Record<string, unknown>) {
   return Boolean(item?.is_heavy_shipping);
@@ -69,10 +70,14 @@ function getShippingSummary(
 }
 
 async function verifyTurnstileToken(token?: string, remoteIp?: string | null) {
+  if (!TURNSTILE_ENABLED) {
+    return { ok: true, enabled: false };
+  }
+
   const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
 
   if (!secret) {
-    return { ok: true, enabled: false };
+    return { ok: false, enabled: true, error: "TURNSTILE_SECRET_KEY is missing" };
   }
 
   if (!token) {
