@@ -25,6 +25,7 @@ function formatPrice(value?: number | null) {
 function paymentLabel(value?: string) {
   if (value === "bizum") return "Bizum";
   if (value === "transferencia") return "Transferencia";
+  if (value === "tienda") return "Pago en tienda";
   return "No especificado";
 }
 
@@ -36,7 +37,18 @@ function isHeavyShippingItem(item?: Record<string, unknown>) {
   return Boolean(item?.is_heavy_shipping);
 }
 
-function getShippingSummary(items: Array<Record<string, unknown>>, merchandiseTotal: number) {
+function getShippingSummary(
+  items: Array<Record<string, unknown>>,
+  merchandiseTotal: number,
+  deliveryMethod?: string
+) {
+  if (deliveryMethod === "pickup") {
+    return {
+      shippingAmount: 0,
+      label: "Recogida en tienda",
+    };
+  }
+
   const normalizedMerchandiseTotal = Number(merchandiseTotal || 0);
   const qualifiesForFreeShipping = normalizedMerchandiseTotal >= FREE_SHIPPING_THRESHOLD;
   const hasHeavyItems = items.some((item) => isHeavyShippingItem(item));
@@ -150,11 +162,13 @@ function buildReceiptHtml(
     .join("");
 
   const delivery = (receipt.delivery || {}) as Record<string, unknown>;
+  const isPickup =
+    delivery.method === "pickup" || String(delivery.address_line_1 || "").trim() === "Recogida en tienda";
   const deliveryLines = [
-    delivery.address_line_1,
-    delivery.address_line_2,
-    [delivery.postal_code, delivery.city].filter(Boolean).join(" "),
-    delivery.province,
+    isPickup ? "Recogida en tienda" : delivery.address_line_1,
+    isPickup ? "" : delivery.address_line_2,
+    isPickup ? "" : [delivery.postal_code, delivery.city].filter(Boolean).join(" "),
+    isPickup ? "" : delivery.province,
   ]
     .filter(Boolean)
     .map((line) => `<div class="address-line">${escapeHtml(String(line))}</div>`)
@@ -316,6 +330,8 @@ function buildInternalOrderEmailHtml(params: {
   const { payload, items, shippingSummary, finalTotal, reference } = params;
   const customer = (payload.customer || {}) as Record<string, unknown>;
   const delivery = (payload.delivery || {}) as Record<string, unknown>;
+  const isPickup =
+    delivery.method === "pickup" || String(delivery.address_line_1 || "").trim() === "Recogida en tienda";
 
   const itemRows = items
     .map((item) => {
@@ -342,10 +358,10 @@ function buildInternalOrderEmailHtml(params: {
     .join("");
 
   const deliveryLines = [
-    delivery.address_line_1 || "",
-    delivery.address_line_2 || "",
-    [delivery.postal_code || "", delivery.city || ""].filter(Boolean).join(" "),
-    delivery.province || "",
+    isPickup ? "Recogida en tienda" : delivery.address_line_1 || "",
+    isPickup ? "" : delivery.address_line_2 || "",
+    isPickup ? "" : [delivery.postal_code || "", delivery.city || ""].filter(Boolean).join(" "),
+    isPickup ? "" : delivery.province || "",
   ]
     .filter(Boolean)
     .map((line) => `<div>${escapeHtml(String(line))}</div>`)
@@ -420,6 +436,14 @@ async function sendResendEmail(params: {
   });
 }
 
+async function readResponseBodySafe(response: Response) {
+  try {
+    return await response.clone().text();
+  } catch {
+    return "";
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -454,11 +478,18 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const isPickupOrder =
+      payload?.delivery?.method === "pickup" ||
+      String(payload?.delivery?.address_line_1 || "").trim() === "Recogida en tienda";
+
     if (
-      !payload?.delivery?.address_line_1 ||
-      !payload?.delivery?.postal_code ||
-      !payload?.delivery?.city ||
-      !payload?.delivery?.province
+      !isPickupOrder &&
+      (
+        !payload?.delivery?.address_line_1 ||
+        !payload?.delivery?.postal_code ||
+        !payload?.delivery?.city ||
+        !payload?.delivery?.province
+      )
     ) {
       return new Response(JSON.stringify({ error: "Missing delivery data" }), {
         status: 400,
@@ -476,7 +507,7 @@ Deno.serve(async (req: Request) => {
     const subtotal = Number(payload.subtotal || 0);
     const discountAmount = Number(payload.discount_amount || 0);
     const merchandiseTotal = Math.max(0, Number((subtotal - discountAmount).toFixed(2)));
-    const shippingSummary = getShippingSummary(items, merchandiseTotal);
+    const shippingSummary = getShippingSummary(items, merchandiseTotal, payload?.delivery?.method);
     const finalTotal = Number((merchandiseTotal + shippingSummary.shippingAmount).toFixed(2));
 
     const supabase = createClient(
@@ -556,11 +587,11 @@ Deno.serve(async (req: Request) => {
       payment_method: payload.payment_method,
       total_eur: finalTotal,
       reference: orderReference,
-      address_line_1: payload.delivery.address_line_1,
-      address_line_2: payload.delivery.address_line_2 || null,
-      postal_code: payload.delivery.postal_code,
-      city: payload.delivery.city,
-      province: payload.delivery.province,
+      address_line_1: isPickupOrder ? "Recogida en tienda" : payload.delivery.address_line_1,
+      address_line_2: isPickupOrder ? "Pago en tienda" : payload.delivery.address_line_2 || null,
+      postal_code: isPickupOrder ? "RECOGIDA" : payload.delivery.postal_code,
+      city: isPickupOrder ? "Recogida en tienda" : payload.delivery.city,
+      province: isPickupOrder ? "Recogida en tienda" : payload.delivery.province,
       notes: payload.notes || null,
       subtotal_eur: subtotal,
       discount_eur: discountAmount,
@@ -678,10 +709,12 @@ Deno.serve(async (req: Request) => {
         .join("");
 
       const deliveryLines = [
-        payload.delivery.address_line_1 || "",
-        payload.delivery.address_line_2 || "",
-        [payload.delivery.postal_code || "", payload.delivery.city || ""].filter(Boolean).join(" "),
-        payload.delivery.province || "",
+        isPickupOrder ? "Recogida en tienda" : payload.delivery.address_line_1 || "",
+        isPickupOrder ? "" : payload.delivery.address_line_2 || "",
+        isPickupOrder
+          ? ""
+          : [payload.delivery.postal_code || "", payload.delivery.city || ""].filter(Boolean).join(" "),
+        isPickupOrder ? "" : payload.delivery.province || "",
       ]
         .filter(Boolean)
         .map((line) => `<div>${escapeHtml(line)}</div>`)
@@ -811,6 +844,19 @@ Deno.serve(async (req: Request) => {
         html: internalHtml,
       });
 
+      const internalBody = await readResponseBodySafe(internalResp);
+      console.log(
+        JSON.stringify({
+          scope: "submit-order",
+          step: "send-internal-email",
+          ok: internalResp.ok,
+          status: internalResp.status,
+          reference,
+          recipients,
+          body: internalBody,
+        })
+      );
+
       if (!internalResp.ok) {
         emailErrors.push("aviso interno");
       }
@@ -826,9 +872,32 @@ Deno.serve(async (req: Request) => {
           html: customerHtml,
         });
 
+        const customerBody = await readResponseBodySafe(customerResp);
+        console.log(
+          JSON.stringify({
+            scope: "submit-order",
+            step: "send-customer-email",
+            ok: customerResp.ok,
+            status: customerResp.status,
+            reference,
+            customerEmail,
+            body: customerBody,
+          })
+        );
+
         if (!customerResp.ok) {
           emailErrors.push("albaran al cliente");
         }
+      } else {
+        console.log(
+          JSON.stringify({
+            scope: "submit-order",
+            step: "skip-customer-email",
+            ok: false,
+            reference,
+            reason: "missing customer email",
+          })
+        );
       }
 
       emailWarning = emailErrors.length

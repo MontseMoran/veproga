@@ -14,6 +14,11 @@ const PAYMENT_OPTIONS = [
   { value: "transferencia", label: "Transferencia" },
 ];
 
+const DELIVERY_OPTIONS = [
+  { value: "shipping", label: "Envío a domicilio" },
+  { value: "pickup", label: "Recogida en tienda" },
+];
+
 const PAYMENT_DETAILS = {
   bizum: {
     title: "Pago por Bizum",
@@ -25,6 +30,11 @@ const PAYMENT_DETAILS = {
     value: "ES0420800371353040007167",
     help: "Haz la transferencia a este IBAN.",
   },
+  tienda: {
+    title: "Pago en tienda",
+    value: "",
+    help: "El pago se realizará al recoger el pedido en tienda.",
+  },
 };
 
 const FREE_SHIPPING_THRESHOLD = 60;
@@ -35,7 +45,16 @@ function isHeavyShippingItem(item) {
   return Boolean(item?.isHeavyShipping);
 }
 
-function getShippingSummary(items, merchandiseTotal) {
+function getShippingSummary(items, merchandiseTotal, deliveryMethod) {
+  if (deliveryMethod === "pickup") {
+    return {
+      shippingAmount: 0,
+      qualifiesForFreeShipping: false,
+      hasHeavyItems: false,
+      label: "Recogida en tienda",
+    };
+  }
+
   const normalizedMerchandiseTotal = Number(merchandiseTotal || 0);
   const qualifiesForFreeShipping = normalizedMerchandiseTotal >= FREE_SHIPPING_THRESHOLD;
   const hasHeavyItems = items.some((item) => isHeavyShippingItem(item));
@@ -76,7 +95,55 @@ function formatPrice(value) {
 }
 
 function paymentLabel(value) {
+  if (value === "tienda") {
+    return "Pago en tienda";
+  }
+
   return PAYMENT_OPTIONS.find((option) => option.value === value)?.label || "No especificado";
+}
+
+async function getFunctionErrorMessage(error, fallbackMessage) {
+  const defaultMessage = fallbackMessage || "No se pudo completar la solicitud.";
+
+  if (!error) {
+    return defaultMessage;
+  }
+
+  const directMessage = String(error?.message || "").trim();
+
+  if (
+    directMessage &&
+    !directMessage.includes("Edge Function returned a non-2xx status code")
+  ) {
+    return directMessage;
+  }
+
+  const response = error?.context;
+
+  if (response && typeof response.clone === "function") {
+    try {
+      const payload = await response.clone().json();
+      const apiMessage = String(payload?.error || payload?.message || "").trim();
+
+      if (apiMessage) {
+        return apiMessage;
+      }
+    } catch {
+      // Ignore JSON parse failures and try plain text below.
+    }
+
+    try {
+      const text = String(await response.clone().text()).trim();
+
+      if (text) {
+        return text;
+      }
+    } catch {
+      // Ignore text parse failures.
+    }
+  }
+
+  return directMessage || defaultMessage;
 }
 
 export default function Cart() {
@@ -106,6 +173,7 @@ export default function Cart() {
   const [deliveryPostalCode, setDeliveryPostalCode] = useState("");
   const [deliveryCity, setDeliveryCity] = useState("");
   const [deliveryProvince, setDeliveryProvince] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState("shipping");
   const [paymentMethod, setPaymentMethod] = useState("bizum");
   const [orderNotes, setOrderNotes] = useState("");
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
@@ -121,13 +189,24 @@ export default function Cart() {
   const turnstileContainerId = "cart-turnstile";
   const turnstileWidgetIdRef = useRef(null);
   const checkoutPanelRef = useRef(null);
+  const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
+  const captchaValidated = !captchaEnabled || Boolean(captchaToken);
 
   useEffect(() => {
     setCode(appliedDiscount?.code || "");
   }, [appliedDiscount?.code]);
 
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY) return undefined;
+    if (deliveryMethod === "pickup") {
+      setPaymentMethod("tienda");
+      return;
+    }
+
+    setPaymentMethod((current) => (current === "tienda" ? "bizum" : current));
+  }, [deliveryMethod]);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || !showCheckoutForm) return undefined;
 
     let cancelled = false;
     let loadTimeoutId = null;
@@ -144,6 +223,8 @@ export default function Cart() {
       turnstileWidgetIdRef.current = window.turnstile.render(`#${turnstileContainerId}`, {
         sitekey: TURNSTILE_SITE_KEY,
         theme: "light",
+        size: "flexible",
+        appearance: "always",
         callback: (token) => setCaptchaToken(token || ""),
         "expired-callback": () => setCaptchaToken(""),
         "error-callback": () => {
@@ -220,7 +301,7 @@ export default function Cart() {
         window.clearInterval(readinessIntervalId);
       }
     };
-  }, [turnstileContainerId]);
+  }, [showCheckoutForm, turnstileContainerId]);
 
   useEffect(() => {
     if (!showCheckoutForm || !checkoutPanelRef.current) return;
@@ -261,16 +342,17 @@ export default function Cart() {
   );
 
   const shippingSummary = useMemo(
-    () => getShippingSummary(items, merchandiseTotal),
-    [items, merchandiseTotal]
+    () => getShippingSummary(items, merchandiseTotal, deliveryMethod),
+    [deliveryMethod, items, merchandiseTotal]
   );
 
+  const isPickup = deliveryMethod === "pickup";
   const finalTotal = useMemo(
     () => Number((merchandiseTotal + shippingSummary.shippingAmount).toFixed(2)),
     [merchandiseTotal, shippingSummary.shippingAmount]
   );
 
-  const paymentDetail = PAYMENT_DETAILS[paymentMethod];
+  const paymentDetail = PAYMENT_DETAILS[paymentMethod] || PAYMENT_DETAILS.bizum;
 
   async function handleApplyDiscount(event) {
     event.preventDefault();
@@ -362,7 +444,7 @@ export default function Cart() {
       return;
     }
 
-    if (TURNSTILE_SITE_KEY && !captchaToken) {
+    if (captchaEnabled && !captchaToken) {
       setOrderError("Completa la verificación CAPTCHA antes de enviar el pedido.");
       return;
     }
@@ -375,11 +457,12 @@ export default function Cart() {
         phone: customerPhone.trim(),
       },
       delivery: {
-        address_line_1: deliveryAddress.trim(),
-        address_line_2: deliveryAddress2.trim(),
-        postal_code: deliveryPostalCode.trim(),
-        city: deliveryCity.trim(),
-        province: deliveryProvince.trim(),
+        method: deliveryMethod,
+        address_line_1: isPickup ? "Recogida en tienda" : deliveryAddress.trim(),
+        address_line_2: isPickup ? "Pago en tienda" : deliveryAddress2.trim(),
+        postal_code: isPickup ? "RECOGIDA" : deliveryPostalCode.trim(),
+        city: isPickup ? "Recogida en tienda" : deliveryCity.trim(),
+        province: isPickup ? "Recogida en tienda" : deliveryProvince.trim(),
       },
       payment_method: paymentMethod,
       notes: orderNotes.trim(),
@@ -410,7 +493,7 @@ export default function Cart() {
     setSubmittingOrder(false);
 
     if (error) {
-      setOrderError("No se pudo enviar el pedido. Inténtalo de nuevo.");
+      setOrderError(await getFunctionErrorMessage(error, "No se pudo enviar el pedido. Inténtalo de nuevo."));
       return;
     }
 
@@ -452,6 +535,7 @@ export default function Cart() {
     setDeliveryPostalCode("");
     setDeliveryCity("");
     setDeliveryProvince("");
+    setDeliveryMethod("shipping");
     setPaymentMethod("bizum");
     setOrderNotes("");
     setAcceptedPrivacy(false);
@@ -642,8 +726,8 @@ export default function Cart() {
                 <p className="cart-page__summaryLabel">Total</p>
                 <p className="cart-page__summaryValue">{formatPrice(finalTotal)}</p>
                 <p className="cart-page__summaryText">
-                  Envío gratis a partir de {formatPrice(FREE_SHIPPING_THRESHOLD)}. Completa tus
-                  datos para enviar el pedido y recibir el albarán.
+                  Puedes elegir entre envío a domicilio o recogida en tienda. En envío, es gratis
+                  a partir de {formatPrice(FREE_SHIPPING_THRESHOLD)}.
                 </p>
                 <p className="cart-page__summaryText">
                   El teléfono podrá incluirse en la documentación de entrega cuando sea
@@ -669,6 +753,24 @@ export default function Cart() {
                 <h2 className="cart-page__orderTitle">Datos del pedido</h2>
 
                 <div className="cart-page__orderForm">
+                  <div className="cart-page__field cart-page__field--full">
+                    <span>Entrega</span>
+                    <div className="cart-page__paymentOptions">
+                      {DELIVERY_OPTIONS.map((option) => (
+                        <label key={option.value} className="cart-page__paymentOption">
+                          <input
+                            type="radio"
+                            name="delivery_method"
+                            value={option.value}
+                            checked={deliveryMethod === option.value}
+                            onChange={(event) => setDeliveryMethod(event.target.value)}
+                          />
+                          <span>{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
                   <label className="cart-page__field">
                     <span>Nombre y apellidos</span>
                     <input
@@ -699,82 +801,100 @@ export default function Cart() {
                     />
                   </label>
 
-                  <label className="cart-page__field cart-page__field--full">
-                    <span>Dirección de entrega</span>
-                    <input
-                      type="text"
-                      value={deliveryAddress}
-                      onChange={(event) => setDeliveryAddress(event.target.value)}
-                      required
-                    />
-                  </label>
-
-                  <label className="cart-page__field cart-page__field--full">
-                    <span>Piso, puerta o información adicional</span>
-                    <input
-                      type="text"
-                      value={deliveryAddress2}
-                      onChange={(event) => setDeliveryAddress2(event.target.value)}
-                    />
-                  </label>
-
-                  <label className="cart-page__field">
-                    <span>Código postal</span>
-                    <input
-                      type="text"
-                      value={deliveryPostalCode}
-                      onChange={(event) => setDeliveryPostalCode(event.target.value)}
-                      required
-                    />
-                  </label>
-
-                  <label className="cart-page__field">
-                    <span>Ciudad</span>
-                    <input
-                      type="text"
-                      value={deliveryCity}
-                      onChange={(event) => setDeliveryCity(event.target.value)}
-                      required
-                    />
-                  </label>
-
-                  <label className="cart-page__field cart-page__field--full">
-                    <span>Provincia</span>
-                    <input
-                      type="text"
-                      value={deliveryProvince}
-                      onChange={(event) => setDeliveryProvince(event.target.value)}
-                      required
-                    />
-                  </label>
-
-                  <div className="cart-page__field cart-page__field--full">
-                    <span>Forma de pago</span>
-                    <div className="cart-page__paymentOptions">
-                      {PAYMENT_OPTIONS.map((option) => (
-                        <label key={option.value} className="cart-page__paymentOption">
-                          <input
-                            type="radio"
-                            name="payment_method"
-                            value={option.value}
-                            checked={paymentMethod === option.value}
-                            onChange={(event) => setPaymentMethod(event.target.value)}
-                          />
-                          <span>{option.label}</span>
-                        </label>
-                      ))}
+                  {isPickup ? (
+                    <div className="cart-page__paymentInfo cart-page__field--full">
+                      <p className="cart-page__paymentInfoTitle">Recogida en tienda</p>
+                      <p className="cart-page__paymentInfoText">
+                        No se aplicarán gastos de envío. Usaremos tu teléfono o correo para
+                        coordinar la recogida del pedido.
+                      </p>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <label className="cart-page__field cart-page__field--full">
+                        <span>Dirección de entrega</span>
+                        <input
+                          type="text"
+                          value={deliveryAddress}
+                          onChange={(event) => setDeliveryAddress(event.target.value)}
+                          required={!isPickup}
+                        />
+                      </label>
+
+                      <label className="cart-page__field cart-page__field--full">
+                        <span>Piso, puerta o información adicional</span>
+                        <input
+                          type="text"
+                          value={deliveryAddress2}
+                          onChange={(event) => setDeliveryAddress2(event.target.value)}
+                        />
+                      </label>
+
+                      <label className="cart-page__field">
+                        <span>Código postal</span>
+                        <input
+                          type="text"
+                          value={deliveryPostalCode}
+                          onChange={(event) => setDeliveryPostalCode(event.target.value)}
+                          required={!isPickup}
+                        />
+                      </label>
+
+                      <label className="cart-page__field">
+                        <span>Ciudad</span>
+                        <input
+                          type="text"
+                          value={deliveryCity}
+                          onChange={(event) => setDeliveryCity(event.target.value)}
+                          required={!isPickup}
+                        />
+                      </label>
+
+                      <label className="cart-page__field cart-page__field--full">
+                        <span>Provincia</span>
+                        <input
+                          type="text"
+                          value={deliveryProvince}
+                          onChange={(event) => setDeliveryProvince(event.target.value)}
+                          required={!isPickup}
+                        />
+                      </label>
+                    </>
+                  )}
+
+                  {isPickup ? null : (
+                    <div className="cart-page__field cart-page__field--full">
+                      <span>Forma de pago</span>
+                      <div className="cart-page__paymentOptions">
+                        {PAYMENT_OPTIONS.map((option) => (
+                          <label key={option.value} className="cart-page__paymentOption">
+                            <input
+                              type="radio"
+                              name="payment_method"
+                              value={option.value}
+                              checked={paymentMethod === option.value}
+                              onChange={(event) => setPaymentMethod(event.target.value)}
+                            />
+                            <span>{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="cart-page__paymentInfo cart-page__field--full">
                     <p className="cart-page__paymentInfoTitle">{paymentDetail.title}</p>
-                    <p className="cart-page__paymentInfoValue">
-                      {formatPaymentValue(paymentMethod, paymentDetail.value)}
-                    </p>
+                    {paymentDetail.value ? (
+                      <p className="cart-page__paymentInfoValue">
+                        {formatPaymentValue(paymentMethod, paymentDetail.value)}
+                      </p>
+                    ) : null}
                     <p className="cart-page__paymentInfoText">{paymentDetail.help}</p>
-                    <p className="cart-page__paymentInfoConcept">
-                      El concepto del pago se generará al confirmar el pedido.
-                    </p>
+                    {!isPickup ? (
+                      <p className="cart-page__paymentInfoConcept">
+                        El concepto del pago se generará al confirmar el pedido.
+                      </p>
+                    ) : null}
                   </div>
 
                   <label className="cart-page__field cart-page__field--full">
@@ -799,7 +919,7 @@ export default function Cart() {
                     </span>
                   </label>
 
-                  {TURNSTILE_SITE_KEY ? (
+                  {captchaEnabled ? (
                     <div className="cart-page__captcha cart-page__field--full">
                       <span>Verificación anti-spam</span>
                       <div id={turnstileContainerId} />
@@ -810,6 +930,11 @@ export default function Cart() {
                       ) : null}
                       {!captchaReady ? (
                         <p className="cart-page__captchaHelp">Cargando verificación...</p>
+                      ) : null}
+                      {captchaReady && !captchaLoadError && !captchaToken ? (
+                        <p className="cart-page__captchaHelp">
+                          Completa la verificación antes de enviar el pedido.
+                        </p>
                       ) : null}
                     </div>
                   ) : null}
@@ -840,7 +965,8 @@ export default function Cart() {
                   className="cart-page__submitOrder"
                   disabled={
                     submittingOrder ||
-                    (Boolean(TURNSTILE_SITE_KEY) && (!captchaReady || Boolean(captchaLoadError)))
+                    (captchaEnabled &&
+                      (!captchaReady || Boolean(captchaLoadError) || !captchaValidated))
                   }
                 >
                   {submittingOrder ? "Enviando pedido..." : "Enviar pedido"}

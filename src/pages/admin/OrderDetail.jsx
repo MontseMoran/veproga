@@ -34,10 +34,12 @@ function formatDate(value) {
 function paymentLabel(value) {
   if (value === "bizum") return "Bizum";
   if (value === "transferencia") return "Transferencia";
+  if (value === "tienda") return "Pago en tienda";
   return value || "No especificado";
 }
 
 function buildAdminReceipt(order, items, subtotal) {
+  const isPickup = String(order?.address_line_1 || "").trim() === "Recogida en tienda";
   const shippingAmount = Math.max(
     0,
     Number((Number(order?.total_eur || 0) - subtotal + Number(order?.discount_eur || 0)).toFixed(2))
@@ -71,12 +73,16 @@ function buildAdminReceipt(order, items, subtotal) {
     subtotal,
     discount_amount: Number(order?.discount_eur || 0),
     shipping_amount: shippingAmount,
-    shipping_label: shippingAmount > 0 ? "Envío" : "Gratis",
+    shipping_label: isPickup ? "Recogida en tienda" : shippingAmount > 0 ? "Envío" : "Gratis",
     total: Number(order?.total_eur || 0),
   };
 }
 
 function buildShippingLabelHtml(order) {
+  if (String(order?.address_line_1 || "").trim() === "Recogida en tienda") {
+    return "";
+  }
+
   const addressLines = [
     order.address_line_1,
     order.address_line_2,
@@ -235,6 +241,10 @@ function buildShippingLabelHtml(order) {
 }
 
 function printShippingLabel(order) {
+  if (String(order?.address_line_1 || "").trim() === "Recogida en tienda") {
+    return;
+  }
+
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.right = "0";
@@ -338,6 +348,7 @@ export default function OrderDetail() {
     [order?.discount_eur, order?.total_eur, subtotal]
   );
   const receipt = useMemo(() => buildAdminReceipt(order, items, subtotal), [order, items, subtotal]);
+  const isPickupOrder = String(order?.address_line_1 || "").trim() === "Recogida en tienda";
 
   async function handleSaveStatus() {
     if (!order) return;
@@ -404,6 +415,7 @@ export default function OrderDetail() {
             type="button"
             className="admin-action admin-action--ghost"
             onClick={() => printShippingLabel(order)}
+            disabled={isPickupOrder}
           >
             Imprimir etiqueta
           </button>
@@ -457,7 +469,7 @@ export default function OrderDetail() {
             </div>
             <div>
               <strong>Envío</strong>
-              <p>{shippingAmount > 0 ? formatPrice(shippingAmount) : "Gratis"}</p>
+              <p>{isPickupOrder ? "Recogida en tienda" : shippingAmount > 0 ? formatPrice(shippingAmount) : "Gratis"}</p>
             </div>
             <div>
               <strong>Total</strong>
@@ -485,13 +497,11 @@ export default function OrderDetail() {
               <p>{order.phone || "-"}</p>
             </div>
             <div className="admin-orderInfoGrid__full">
-              <strong>Dirección</strong>
+              <strong>{isPickupOrder ? "Entrega" : "Dirección"}</strong>
               <p>{order.address_line_1 || "-"}</p>
-              {order.address_line_2 ? <p>{order.address_line_2}</p> : null}
-              <p>
-                {[order.postal_code, order.city].filter(Boolean).join(" ")}
-              </p>
-              <p>{order.province || "-"}</p>
+              {!isPickupOrder && order.address_line_2 ? <p>{order.address_line_2}</p> : null}
+              {!isPickupOrder ? <p>{[order.postal_code, order.city].filter(Boolean).join(" ")}</p> : null}
+              {!isPickupOrder ? <p>{order.province || "-"}</p> : null}
             </div>
             {order.notes ? (
               <div className="admin-orderInfoGrid__full">

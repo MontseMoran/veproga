@@ -36,11 +36,13 @@ export function buildReceiptHtml(receipt) {
     .join("");
 
   const delivery = receipt.delivery || {};
+  const isPickup =
+    delivery.method === "pickup" || String(delivery.address_line_1 || "").trim() === "Recogida en tienda";
   const deliveryLines = [
-    delivery.address_line_1,
-    delivery.address_line_2,
-    [delivery.postal_code, delivery.city].filter(Boolean).join(" "),
-    delivery.province,
+    isPickup ? "Recogida en tienda" : delivery.address_line_1,
+    isPickup ? "" : delivery.address_line_2,
+    isPickup ? "" : [delivery.postal_code, delivery.city].filter(Boolean).join(" "),
+    isPickup ? "" : delivery.province,
   ]
     .filter(Boolean)
     .map((line) => `<div class="address-line">${escapeReceiptHtml(line)}</div>`)

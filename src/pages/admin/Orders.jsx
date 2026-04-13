@@ -154,7 +154,11 @@ export default function Orders() {
                 </div>
                 <div>
                   <strong>Pago</strong>
-                  <p>{order.payment_method || "-"}</p>
+                  <p>
+                    {order.payment_method === "tienda"
+                      ? "Pago en tienda"
+                      : order.payment_method || "-"}
+                  </p>
                 </div>
                 <div>
                   <strong>Total</strong>

@@ -35,6 +35,50 @@ const COPY = {
   privacyRequired: "Debes aceptar la política de privacidad para continuar.",
 };
 
+async function getFunctionErrorMessage(error, fallbackMessage) {
+  const defaultMessage = fallbackMessage || COPY.error;
+
+  if (!error) {
+    return defaultMessage;
+  }
+
+  const directMessage = String(error?.message || "").trim();
+
+  if (
+    directMessage &&
+    !directMessage.includes("Edge Function returned a non-2xx status code")
+  ) {
+    return directMessage;
+  }
+
+  const response = error?.context;
+
+  if (response && typeof response.clone === "function") {
+    try {
+      const payload = await response.clone().json();
+      const apiMessage = String(payload?.error || payload?.message || "").trim();
+
+      if (apiMessage) {
+        return apiMessage;
+      }
+    } catch {
+      // Ignore JSON parse failures and try plain text below.
+    }
+
+    try {
+      const text = String(await response.clone().text()).trim();
+
+      if (text) {
+        return text;
+      }
+    } catch {
+      // Ignore text parse failures.
+    }
+  }
+
+  return directMessage || defaultMessage;
+}
+
 export default function ShopRequestForm({ product, categoryName, onSuccess }) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
@@ -52,6 +96,8 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
   const [captchaLoadError, setCaptchaLoadError] = useState("");
   const turnstileContainerId = `shop-request-turnstile-${product?.id || "default"}`;
   const turnstileWidgetIdRef = useRef(null);
+  const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
+  const captchaValidated = !captchaEnabled || Boolean(captchaToken);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !isOpen) return undefined;
@@ -71,6 +117,8 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
       turnstileWidgetIdRef.current = window.turnstile.render(`#${turnstileContainerId}`, {
         sitekey: TURNSTILE_SITE_KEY,
         theme: "light",
+        size: "flexible",
+        appearance: "always",
         callback: (token) => setCaptchaToken(token || ""),
         "expired-callback": () => setCaptchaToken(""),
         "error-callback": () => {
@@ -157,7 +205,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
         throw new Error("El cliente de Supabase no está configurado.");
       }
 
-      if (TURNSTILE_SITE_KEY && !captchaToken) {
+      if (captchaEnabled && !captchaToken) {
         throw new Error(COPY.captchaRequired);
       }
 
@@ -218,7 +266,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
       }
     } catch (error) {
       console.error("Error al enviar el formulario de solicitud:", error);
-      setErrMsg(error?.message || COPY.error);
+      setErrMsg(await getFunctionErrorMessage(error, COPY.error));
     } finally {
       setSending(false);
     }
@@ -316,7 +364,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
           </span>
         </label>
 
-        {TURNSTILE_SITE_KEY ? (
+        {captchaEnabled ? (
           <div className="shop-request__captcha shop-request__field--full">
             <span>{COPY.captchaLabel}</span>
             <div id={turnstileContainerId} />
@@ -324,6 +372,9 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
               <div className="shop-request__msg shop-request__msg--err">{captchaLoadError}</div>
             ) : null}
             {!captchaReady ? <div className="shop-request__msg">{COPY.captchaLoading}</div> : null}
+            {captchaReady && !captchaLoadError && !captchaToken ? (
+              <div className="shop-request__msg">{COPY.captchaRequired}</div>
+            ) : null}
           </div>
         ) : null}
 
@@ -333,7 +384,9 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
         <button
           type="submit"
           className="shop-request__btn"
-          disabled={sending || (Boolean(TURNSTILE_SITE_KEY) && (!captchaReady || Boolean(captchaLoadError)))}
+          disabled={
+            sending || (captchaEnabled && (!captchaReady || Boolean(captchaLoadError) || !captchaValidated))
+          }
         >
           {sending ? COPY.sending : COPY.submit}
         </button>
