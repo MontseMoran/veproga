@@ -413,8 +413,11 @@ export default function Cart() {
     if (!showCheckoutForm || !checkoutPanelRef.current) return;
 
     const frameId = window.requestAnimationFrame(() => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const isMobileViewport = window.matchMedia("(max-width: 899px)").matches;
+
       checkoutPanelRef.current?.scrollIntoView({
-        behavior: "smooth",
+        behavior: prefersReducedMotion || isMobileViewport ? "auto" : "smooth",
         block: "start",
       });
     });
@@ -855,7 +858,7 @@ export default function Cart() {
             {showCheckoutForm ? (
               <form
                 ref={checkoutPanelRef}
-                className="cart-page__checkoutPanel reveal-on-scroll"
+                className="cart-page__checkoutPanel"
                 onSubmit={handleSubmitOrder}
               >
                 <h2 className="cart-page__orderTitle">Datos del pedido</h2>
