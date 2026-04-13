@@ -230,6 +230,31 @@ export default function Cart() {
     let loadTimeoutId = null;
     let readinessIntervalId = null;
     let renderFrameId = null;
+    let renderRetryTimeoutId = null;
+    let retryAttempts = 0;
+    let resizeObserver = null;
+
+    function clearRenderTimers() {
+      if (renderFrameId) {
+        window.cancelAnimationFrame(renderFrameId);
+        renderFrameId = null;
+      }
+
+      if (renderRetryTimeoutId) {
+        window.clearTimeout(renderRetryTimeoutId);
+        renderRetryTimeoutId = null;
+      }
+    }
+
+    function scheduleRender(delay = 0) {
+      if (cancelled) return;
+
+      clearRenderTimers();
+      renderRetryTimeoutId = window.setTimeout(() => {
+        renderRetryTimeoutId = null;
+        renderTurnstile();
+      }, delay);
+    }
 
     function renderTurnstile() {
       if (cancelled || !window.turnstile) return;
@@ -240,9 +265,19 @@ export default function Cart() {
 
       setCaptchaLoadError("");
       setCaptchaReady(false);
+      clearRenderTimers();
 
       renderFrameId = window.requestAnimationFrame(() => {
         if (cancelled || !window.turnstile || container.dataset.rendered === "true") return;
+        const hasLayout = container.offsetWidth > 0 && container.offsetHeight >= 0;
+
+        if (!hasLayout) {
+          if (retryAttempts < 12) {
+            retryAttempts += 1;
+            scheduleRender(180);
+          }
+          return;
+        }
 
         turnstileWidgetIdRef.current = window.turnstile.render(container, {
           sitekey: TURNSTILE_SITE_KEY,
@@ -260,6 +295,7 @@ export default function Cart() {
         });
 
         container.dataset.rendered = "true";
+        retryAttempts = 0;
         setCaptchaReady(true);
 
         if (loadTimeoutId) {
@@ -291,7 +327,7 @@ export default function Cart() {
 
     if (existingScript) {
       if (window.turnstile) {
-        renderTurnstile();
+        scheduleRender(120);
       } else {
         existingScript.addEventListener("load", renderTurnstile, { once: true });
         existingScript.addEventListener("error", handleScriptError, { once: true });
@@ -305,9 +341,12 @@ export default function Cart() {
         if (readinessIntervalId) {
           window.clearInterval(readinessIntervalId);
         }
-        if (renderFrameId) {
-          window.cancelAnimationFrame(renderFrameId);
-        }
+        clearRenderTimers();
+        resizeObserver?.disconnect();
+        window.removeEventListener("resize", handleViewportChange);
+        window.removeEventListener("orientationchange", handleViewportChange);
+        window.removeEventListener("pageshow", handleViewportChange);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
     }
 
@@ -320,6 +359,31 @@ export default function Cart() {
     script.addEventListener("error", handleScriptError, { once: true });
     document.head.appendChild(script);
 
+    function handleViewportChange() {
+      const container =
+        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+      if (!container || container.dataset.rendered === "true") return;
+      scheduleRender(120);
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        handleViewportChange();
+      }
+    }
+
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("orientationchange", handleViewportChange);
+    window.addEventListener("pageshow", handleViewportChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const observedContainer =
+      turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+    if (observedContainer && typeof window.ResizeObserver === "function") {
+      resizeObserver = new window.ResizeObserver(() => handleViewportChange());
+      resizeObserver.observe(observedContainer);
+    }
+
     return () => {
       cancelled = true;
       if (loadTimeoutId) {
@@ -328,9 +392,12 @@ export default function Cart() {
       if (readinessIntervalId) {
         window.clearInterval(readinessIntervalId);
       }
-      if (renderFrameId) {
-        window.cancelAnimationFrame(renderFrameId);
-      }
+      clearRenderTimers();
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
+      window.removeEventListener("pageshow", handleViewportChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [showCheckoutForm, turnstileContainerId]);
 
