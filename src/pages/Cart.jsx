@@ -190,8 +190,8 @@ export default function Cart() {
   const turnstileWidgetIdRef = useRef(null);
   const turnstileContainerRef = useRef(null);
   const checkoutPanelRef = useRef(null);
-  const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
-  const captchaValidated = !captchaEnabled || Boolean(captchaToken);
+const captchaEnabled = false;
+const captchaValidated = true;
   const isMobileViewportRef = useRef(false);
 
   function getCaptchaTokenValue() {
@@ -555,7 +555,7 @@ export default function Cart() {
     setOrderError("");
     setOrderSuccess("");
 
-    const resolvedCaptchaToken = getCaptchaTokenValue();
+    const resolvedCaptchaToken = null;
 
     if (!items.length) {
       setOrderError("Tu carrito está vacío.");
