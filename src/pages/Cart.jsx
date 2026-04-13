@@ -188,6 +188,7 @@ export default function Cart() {
   const [captchaLoadError, setCaptchaLoadError] = useState("");
   const turnstileContainerId = "cart-turnstile";
   const turnstileWidgetIdRef = useRef(null);
+  const turnstileContainerRef = useRef(null);
   const checkoutPanelRef = useRef(null);
   const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
   const captchaValidated = !captchaEnabled || Boolean(captchaToken);
@@ -228,36 +229,43 @@ export default function Cart() {
     let cancelled = false;
     let loadTimeoutId = null;
     let readinessIntervalId = null;
+    let renderFrameId = null;
 
     function renderTurnstile() {
       if (cancelled || !window.turnstile) return;
 
-      const container = document.getElementById(turnstileContainerId);
+      const container =
+        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
       if (!container || container.dataset.rendered === "true") return;
 
       setCaptchaLoadError("");
+      setCaptchaReady(false);
 
-      turnstileWidgetIdRef.current = window.turnstile.render(`#${turnstileContainerId}`, {
-        sitekey: TURNSTILE_SITE_KEY,
-        theme: "light",
-        size: "flexible",
-        appearance: "always",
-        callback: (token) => setCaptchaToken(token || ""),
-        "expired-callback": () => setCaptchaToken(""),
-        "error-callback": () => {
-          setCaptchaToken("");
-          setCaptchaLoadError(
-            "No se pudo cargar la verificación anti-spam. Revisa bloqueadores, extensiones o prueba a recargar."
-          );
-        },
+      renderFrameId = window.requestAnimationFrame(() => {
+        if (cancelled || !window.turnstile || container.dataset.rendered === "true") return;
+
+        turnstileWidgetIdRef.current = window.turnstile.render(container, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: "light",
+          size: "flexible",
+          appearance: "always",
+          callback: (token) => setCaptchaToken(token || ""),
+          "expired-callback": () => setCaptchaToken(""),
+          "error-callback": () => {
+            setCaptchaToken("");
+            setCaptchaLoadError(
+              "No se pudo cargar la verificación anti-spam. Revisa bloqueadores, extensiones o prueba a recargar."
+            );
+          },
+        });
+
+        container.dataset.rendered = "true";
+        setCaptchaReady(true);
+
+        if (loadTimeoutId) {
+          window.clearTimeout(loadTimeoutId);
+        }
       });
-
-      container.dataset.rendered = "true";
-      setCaptchaReady(true);
-
-      if (loadTimeoutId) {
-        window.clearTimeout(loadTimeoutId);
-      }
     }
 
     function handleScriptError() {
@@ -297,16 +305,9 @@ export default function Cart() {
         if (readinessIntervalId) {
           window.clearInterval(readinessIntervalId);
         }
-        if (window.turnstile && turnstileWidgetIdRef.current !== null) {
-          window.turnstile.remove(turnstileWidgetIdRef.current);
-          turnstileWidgetIdRef.current = null;
+        if (renderFrameId) {
+          window.cancelAnimationFrame(renderFrameId);
         }
-        const container = document.getElementById(turnstileContainerId);
-        if (container) {
-          container.innerHTML = "";
-          delete container.dataset.rendered;
-        }
-        setCaptchaToken("");
       };
     }
 
@@ -327,18 +328,19 @@ export default function Cart() {
       if (readinessIntervalId) {
         window.clearInterval(readinessIntervalId);
       }
-      if (window.turnstile && turnstileWidgetIdRef.current !== null) {
-        window.turnstile.remove(turnstileWidgetIdRef.current);
-        turnstileWidgetIdRef.current = null;
+      if (renderFrameId) {
+        window.cancelAnimationFrame(renderFrameId);
       }
-      const container = document.getElementById(turnstileContainerId);
-      if (container) {
-        container.innerHTML = "";
-        delete container.dataset.rendered;
-      }
-      setCaptchaToken("");
     };
-  }, [deliveryMethod, showCheckoutForm, turnstileContainerId]);
+  }, [showCheckoutForm, turnstileContainerId]);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || !showCheckoutForm || !window.turnstile) return;
+    if (turnstileWidgetIdRef.current === null) return;
+
+    setCaptchaToken("");
+    window.turnstile.reset(turnstileWidgetIdRef.current);
+  }, [deliveryMethod, showCheckoutForm]);
 
   useEffect(() => {
     if (!showCheckoutForm || !checkoutPanelRef.current) return;
@@ -961,7 +963,7 @@ export default function Cart() {
                   {captchaEnabled ? (
                     <div className="cart-page__captcha cart-page__field--full">
                       <span>Verificación anti-spam</span>
-                      <div id={turnstileContainerId} />
+                      <div id={turnstileContainerId} ref={turnstileContainerRef} />
                       {captchaLoadError ? (
                         <p className="cart-page__captchaHelp cart-page__captchaHelp--error">
                           {captchaLoadError}
