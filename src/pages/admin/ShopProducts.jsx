@@ -59,27 +59,24 @@ export default function ShopProducts() {
         ] = await Promise.all([
           supabase
             .from("shop_products")
-            .select("id, sku, slug, name, description, price_eur, is_pack, is_heavy_shipping, is_active, created_at")
+            .select(
+              "id, sku, slug, name, description, price_eur, is_pack, is_heavy_shipping, is_active, created_at"
+            )
             .order("created_at", { ascending: false }),
-
           supabase.from("shop_product_categories").select("product_id, category_id"),
-
           supabase
             .from("shop_categories")
             .select("id, name, sort_order")
             .order("sort_order", { ascending: true }),
-
           supabase
             .from("shop_product_images")
             .select("product_id, image_url, sort_order")
             .order("sort_order", { ascending: true }),
-
           supabase
             .from("shop_subcategories")
             .select("id, category_id, name, sort_order")
             .eq("is_active", true)
             .order("sort_order", { ascending: true }),
-
           supabase.from("shop_product_subcategories").select("product_id, subcategory_id"),
         ]);
 
@@ -88,20 +85,30 @@ export default function ShopProducts() {
         if (categoriesError) throw categoriesError;
         if (imagesError) throw imagesError;
 
+        const categoriesList = categoriesData || [];
         const categoriesById = Object.fromEntries(
-          (categoriesData || []).map((category) => [category.id, category])
+          categoriesList.map((category) => [category.id, category])
         );
 
         const categoryNamesByProductId = {};
+        const categoryIdsByProductId = {};
+
         (relationsData || []).forEach((row) => {
+          const category = categoriesById[row.category_id];
+
           if (!categoryNamesByProductId[row.product_id]) {
             categoryNamesByProductId[row.product_id] = [];
           }
 
-          const category = categoriesById[row.category_id];
+          if (!categoryIdsByProductId[row.product_id]) {
+            categoryIdsByProductId[row.product_id] = [];
+          }
+
           if (category) {
             categoryNamesByProductId[row.product_id].push(category.name);
           }
+
+          categoryIdsByProductId[row.product_id].push(row.category_id);
         });
 
         const firstImageByProductId = {};
@@ -111,7 +118,6 @@ export default function ShopProducts() {
           }
         });
 
-        const categoriesList = categoriesData || [];
         let subcategoriesList = [];
         let subcategoriesByProductId = {};
 
@@ -122,7 +128,6 @@ export default function ShopProducts() {
           );
 
           if (active) {
-            setCategories(categoriesList);
             setSubcategories([]);
             setSubcategoriesReady(false);
             setSelectedCategoryId("");
@@ -147,15 +152,10 @@ export default function ShopProducts() {
               subcategoriesByProductId[row.product_id] = [];
             }
 
-            subcategoriesByProductId[row.product_id].push({
-              ...subcategory,
-              slug: slugifyValue(subcategory.slug || subcategory.name),
-              normalizedName: slugifyValue(subcategory.name),
-            });
+            subcategoriesByProductId[row.product_id].push(subcategory);
           });
 
           if (active) {
-            setCategories(categoriesList);
             setSubcategories(subcategoriesList);
             setSubcategoriesReady(true);
           }
@@ -164,28 +164,32 @@ export default function ShopProducts() {
         const normalized = (productsData || []).map((item) => ({
           ...item,
           categories: categoryNamesByProductId[item.id] || [],
-          categoryIds: (relationsData || [])
-            .filter((row) => row.product_id === item.id)
-            .map((row) => row.category_id),
+          categoryIds: categoryIdsByProductId[item.id] || [],
           subcategories: subcategoriesByProductId[item.id] || [],
           image_url: firstImageByProductId[item.id] || "",
         }));
 
-        if (active) {
-          setItems(normalized);
-          setLoading(false);
+        if (!active) {
+          return;
         }
+
+        setCategories(categoriesList);
+        setItems(normalized);
+        setLoading(false);
       } catch (error) {
         console.error(error);
-        if (active) {
-          setItems([]);
-          setCategories([]);
-          setSubcategories([]);
-          setSubcategoriesReady(false);
-          setSelectedCategoryId("");
-          setSelectedSubcategoryId("");
-          setLoading(false);
+
+        if (!active) {
+          return;
         }
+
+        setItems([]);
+        setCategories([]);
+        setSubcategories([]);
+        setSubcategoriesReady(false);
+        setSelectedCategoryId("");
+        setSelectedSubcategoryId("");
+        setLoading(false);
       }
     }
 
