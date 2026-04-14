@@ -315,7 +315,10 @@ function buildReceiptHtml(
               </section>
               <div class="footer-wrap">
                 <hr class="footer-line" />
-                <p class="footer-note">Gracias por apoyar al comercio local.</p>
+                <p class="footer-note">
+  Gracias por confiar en Bolboretas & Valu 🦋<br/>
+  Cualquier duda, estamos aquí para ayudarte.
+</p>
               </div>
             </section>
           </div>
@@ -625,9 +628,26 @@ Deno.serve(async (req: Request) => {
       price_eur: Number(item.unit_price || 0),
     }));
 
-    const { error: itemsError } = await supabase
+    let { error: itemsError } = await supabase
       .from("shop_order_items")
       .insert(orderItems);
+
+    const variantConstraintFailed = String(itemsError?.message || "").includes(
+      "shop_order_items_variant_id_fkey"
+    );
+
+    if (variantConstraintFailed) {
+      const fallbackOrderItems = orderItems.map((item) => ({
+        ...item,
+        variant_id: null,
+      }));
+
+      const fallbackInsert = await supabase
+        .from("shop_order_items")
+        .insert(fallbackOrderItems);
+
+      itemsError = fallbackInsert.error;
+    }
 
     if (itemsError) {
       await supabase.from("shop_orders").delete().eq("id", createdOrder.id);
@@ -827,12 +847,23 @@ Deno.serve(async (req: Request) => {
         reference,
       });
 
-      const customerIntroHtml = `
-        <p>Hola ${escapeHtml(String(payload.customer?.name || ""))},</p>
-        <p>Gracias por tu pedido. Te enviamos el mismo albaran que puedes ver y descargar en la web para que tengas una copia en tu correo.</p>
-        <p>Referencia del pedido: <strong>${escapeHtml(reference)}</strong></p>
-      `;
+     const customerIntroHtml = `
+  <p>Hola ${escapeHtml(String(payload.customer?.name || ""))},</p>
 
+  <p>¡Gracias por tu pedido en <strong>Bolboretas & Valu</strong>! 💛</p>
+
+  <p>Hemos recibido tu pedido correctamente y ya lo estamos preparando.</p>
+
+  ${
+    payload?.delivery?.method === "pickup"
+      ? `<p>Podrás recogerlo en tienda en breve. Te avisaremos cuando esté listo.</p>`
+      : `<p>Lo enviaremos lo antes posible a la dirección indicada.</p>`
+  }
+
+  <p><strong>Referencia del pedido:</strong> ${escapeHtml(reference)}</p>
+
+  <p>Debajo tienes el resumen completo de tu compra.</p>
+`;
       const customerHtml = buildReceiptHtml(receipt, {
         introHtml: customerIntroHtml,
         siteUrl,
