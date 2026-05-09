@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSeo } from "../lib/seo";
 import { supabase } from "../lib/supabaseClient";
@@ -14,6 +14,7 @@ const CATEGORY_SKELETON_FILTERS = Array.from({ length: 6 }, (_, index) => index)
 
 export default function CategoryPage() {
   const { slug } = useParams();
+  const pageTopRef = useRef(null);
 
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
@@ -211,6 +212,13 @@ productSubcategoryRows = productSubcategoryData || [];
     setCurrentPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
 
+  useEffect(() => {
+    if (!pageTopRef.current) return;
+
+    const top = pageTopRef.current.getBoundingClientRect().top + window.scrollY - 24;
+    window.scrollTo({ top: Math.max(0, top), left: 0, behavior: "smooth" });
+  }, [currentPage]);
+
   if (loading) {
     return (
       <main className="category-page category-page--loading" aria-busy="true">
@@ -267,7 +275,7 @@ productSubcategoryRows = productSubcategoryData || [];
   }
 
   return (
-    <main className="category-page">
+    <main ref={pageTopRef} className="category-page">
       <div className="category-page__container">
         <header
           className="category-page__header reveal-on-scroll"

@@ -96,8 +96,28 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
   const [captchaLoadError, setCaptchaLoadError] = useState("");
   const turnstileContainerId = `shop-request-turnstile-${product?.id || "default"}`;
   const turnstileWidgetIdRef = useRef(null);
+  const turnstileContainerRef = useRef(null);
   const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
   const captchaValidated = !captchaEnabled || Boolean(captchaToken);
+  const isMobileViewportRef = useRef(false);
+
+  function getCaptchaTokenValue() {
+    if (captchaToken) {
+      return captchaToken;
+    }
+
+    if (typeof document === "undefined") {
+      return "";
+    }
+
+    const container =
+      turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+    const tokenField =
+      container?.querySelector('input[name="cf-turnstile-response"]') ||
+      document.querySelector('input[name="cf-turnstile-response"]');
+
+    return String(tokenField?.value || "").trim();
+  }
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !isOpen) return undefined;
@@ -105,34 +125,80 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
     let cancelled = false;
     let loadTimeoutId = null;
     let readinessIntervalId = null;
+    let renderFrameId = null;
+    let renderRetryTimeoutId = null;
+    let retryAttempts = 0;
+    let resizeObserver = null;
+
+    function clearRenderTimers() {
+      if (renderFrameId) {
+        window.cancelAnimationFrame(renderFrameId);
+        renderFrameId = null;
+      }
+
+      if (renderRetryTimeoutId) {
+        window.clearTimeout(renderRetryTimeoutId);
+        renderRetryTimeoutId = null;
+      }
+    }
+
+    function scheduleRender(delay = 0) {
+      if (cancelled) return;
+
+      clearRenderTimers();
+      renderRetryTimeoutId = window.setTimeout(() => {
+        renderRetryTimeoutId = null;
+        renderTurnstile();
+      }, delay);
+    }
 
     function renderTurnstile() {
       if (cancelled || !window.turnstile) return;
 
-      const container = document.getElementById(turnstileContainerId);
+      const container =
+        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
       if (!container || container.dataset.rendered === "true") return;
 
       setCaptchaLoadError("");
+      setCaptchaReady(false);
+      clearRenderTimers();
 
-      turnstileWidgetIdRef.current = window.turnstile.render(`#${turnstileContainerId}`, {
-        sitekey: TURNSTILE_SITE_KEY,
-        theme: "light",
-        size: "flexible",
-        appearance: "always",
-        callback: (token) => setCaptchaToken(token || ""),
-        "expired-callback": () => setCaptchaToken(""),
-        "error-callback": () => {
-          setCaptchaToken("");
-          setCaptchaLoadError(COPY.captchaLoadError);
-        },
+      renderFrameId = window.requestAnimationFrame(() => {
+        if (cancelled || !window.turnstile || container.dataset.rendered === "true") return;
+
+        const hasLayout = container.offsetWidth > 0;
+
+        if (!hasLayout) {
+          if (retryAttempts < 12) {
+            retryAttempts += 1;
+            scheduleRender(180);
+          }
+          return;
+        }
+
+        isMobileViewportRef.current = window.matchMedia("(max-width: 599px)").matches;
+
+        turnstileWidgetIdRef.current = window.turnstile.render(container, {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: "light",
+          size: isMobileViewportRef.current ? "normal" : "flexible",
+          appearance: "always",
+          callback: (token) => setCaptchaToken(token || ""),
+          "expired-callback": () => setCaptchaToken(""),
+          "error-callback": () => {
+            setCaptchaToken("");
+            setCaptchaLoadError(COPY.captchaLoadError);
+          },
+        });
+
+        container.dataset.rendered = "true";
+        retryAttempts = 0;
+        setCaptchaReady(true);
+
+        if (loadTimeoutId) {
+          window.clearTimeout(loadTimeoutId);
+        }
       });
-
-      container.dataset.rendered = "true";
-      setCaptchaReady(true);
-
-      if (loadTimeoutId) {
-        window.clearTimeout(loadTimeoutId);
-      }
     }
 
     function handleScriptError() {
@@ -156,7 +222,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
 
     if (existingScript) {
       if (window.turnstile) {
-        renderTurnstile();
+        scheduleRender(120);
       } else {
         existingScript.addEventListener("load", renderTurnstile, { once: true });
         existingScript.addEventListener("error", handleScriptError, { once: true });
@@ -170,6 +236,12 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
         if (readinessIntervalId) {
           window.clearInterval(readinessIntervalId);
         }
+        clearRenderTimers();
+        resizeObserver?.disconnect();
+        window.removeEventListener("resize", handleViewportChange);
+        window.removeEventListener("orientationchange", handleViewportChange);
+        window.removeEventListener("pageshow", handleViewportChange);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
       };
     }
 
@@ -182,6 +254,31 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
     script.addEventListener("error", handleScriptError, { once: true });
     document.head.appendChild(script);
 
+    function handleViewportChange() {
+      const container =
+        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+      if (!container || container.dataset.rendered === "true") return;
+      scheduleRender(120);
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        handleViewportChange();
+      }
+    }
+
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("orientationchange", handleViewportChange);
+    window.addEventListener("pageshow", handleViewportChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const observedContainer =
+      turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+    if (observedContainer && typeof window.ResizeObserver === "function") {
+      resizeObserver = new window.ResizeObserver(() => handleViewportChange());
+      resizeObserver.observe(observedContainer);
+    }
+
     return () => {
       cancelled = true;
       if (loadTimeoutId) {
@@ -190,8 +287,33 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
       if (readinessIntervalId) {
         window.clearInterval(readinessIntervalId);
       }
+      clearRenderTimers();
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleViewportChange);
+      window.removeEventListener("pageshow", handleViewportChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isOpen, turnstileContainerId]);
+
+  useEffect(() => {
+    if (!captchaEnabled || !isOpen || !window.turnstile) return;
+    if (turnstileWidgetIdRef.current === null) return;
+
+    const isMobileViewport = window.matchMedia("(max-width: 599px)").matches;
+    if (isMobileViewport !== isMobileViewportRef.current) {
+      const container =
+        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
+      if (container) {
+        window.turnstile.remove(turnstileWidgetIdRef.current);
+        turnstileWidgetIdRef.current = null;
+        container.innerHTML = "";
+        delete container.dataset.rendered;
+        setCaptchaToken("");
+        setCaptchaReady(false);
+      }
+    }
+  }, [captchaEnabled, isOpen, turnstileContainerId]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -205,7 +327,9 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
         throw new Error("El cliente de Supabase no está configurado.");
       }
 
-      if (captchaEnabled && !captchaToken) {
+      const resolvedCaptchaToken = captchaEnabled ? getCaptchaTokenValue() : null;
+
+      if (captchaEnabled && !resolvedCaptchaToken) {
         throw new Error(COPY.captchaRequired);
       }
 
@@ -234,7 +358,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
           requested_item: payload.requested_item,
           requested_size: payload.requested_size,
           notes: payload.notes,
-          captcha_token: captchaToken,
+          captcha_token: resolvedCaptchaToken,
           message: [
             `${COPY.product}: ${product?.name || "-"}`,
             `${COPY.category}: ${categoryName || "-"}`,
@@ -367,7 +491,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
         {captchaEnabled ? (
           <div className="shop-request__captcha shop-request__field--full">
             <span>{COPY.captchaLabel}</span>
-            <div id={turnstileContainerId} />
+            <div id={turnstileContainerId} ref={turnstileContainerRef} />
             {captchaLoadError ? (
               <div className="shop-request__msg shop-request__msg--err">{captchaLoadError}</div>
             ) : null}

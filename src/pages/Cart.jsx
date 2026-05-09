@@ -6,10 +6,6 @@ import { useSeo } from "../lib/seo";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/cart.scss";
 
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
-const TURNSTILE_SCRIPT_ID = "cf-turnstile-script";
-const TURNSTILE_ENABLED = import.meta.env.VITE_TURNSTILE_ENABLED === "true";
-
 const PAYMENT_OPTIONS = [
   { value: "bizum", label: "Bizum" },
   { value: "transferencia", label: "Transferencia" },
@@ -184,33 +180,7 @@ export default function Cart() {
   const [orderReference, setOrderReference] = useState("");
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_ENABLED || !TURNSTILE_SITE_KEY);
-  const [captchaLoadError, setCaptchaLoadError] = useState("");
-  const turnstileContainerId = "cart-turnstile";
-  const turnstileWidgetIdRef = useRef(null);
-  const turnstileContainerRef = useRef(null);
   const checkoutPanelRef = useRef(null);
-  const captchaEnabled = TURNSTILE_ENABLED && Boolean(TURNSTILE_SITE_KEY);
-  const captchaValidated = !captchaEnabled || Boolean(captchaToken);
-  const isMobileViewportRef = useRef(false);
-
-  function getCaptchaTokenValue() {
-    if (captchaToken) {
-      return captchaToken;
-    }
-
-    if (typeof document === "undefined") {
-      return "";
-    }
-
-    const container = document.getElementById(turnstileContainerId);
-    const tokenField =
-      container?.querySelector('input[name="cf-turnstile-response"]') ||
-      document.querySelector('input[name="cf-turnstile-response"]');
-
-    return String(tokenField?.value || "").trim();
-  }
 
   useEffect(() => {
     setCode(appliedDiscount?.code || "");
@@ -224,208 +194,6 @@ export default function Cart() {
 
     setPaymentMethod((current) => (current === "tienda" ? "bizum" : current));
   }, [deliveryMethod]);
-
-  useEffect(() => {
-    if (!captchaEnabled || !showCheckoutForm) return undefined;
-
-    let cancelled = false;
-    let loadTimeoutId = null;
-    let readinessIntervalId = null;
-    let renderFrameId = null;
-    let renderRetryTimeoutId = null;
-    let retryAttempts = 0;
-    let resizeObserver = null;
-
-    function clearRenderTimers() {
-      if (renderFrameId) {
-        window.cancelAnimationFrame(renderFrameId);
-        renderFrameId = null;
-      }
-
-      if (renderRetryTimeoutId) {
-        window.clearTimeout(renderRetryTimeoutId);
-        renderRetryTimeoutId = null;
-      }
-    }
-
-    function scheduleRender(delay = 0) {
-      if (cancelled) return;
-
-      clearRenderTimers();
-      renderRetryTimeoutId = window.setTimeout(() => {
-        renderRetryTimeoutId = null;
-        renderTurnstile();
-      }, delay);
-    }
-
-    function renderTurnstile() {
-      if (cancelled || !window.turnstile) return;
-
-      const container =
-        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-      if (!container || container.dataset.rendered === "true") return;
-
-      setCaptchaLoadError("");
-      setCaptchaReady(false);
-      clearRenderTimers();
-
-      renderFrameId = window.requestAnimationFrame(() => {
-        if (cancelled || !window.turnstile || container.dataset.rendered === "true") return;
-        const hasLayout = container.offsetWidth > 0 && container.offsetHeight > 0;
-
-        if (!hasLayout) {
-          if (retryAttempts < 12) {
-            retryAttempts += 1;
-            scheduleRender(180);
-          }
-          return;
-        }
-
-        isMobileViewportRef.current = window.matchMedia("(max-width: 599px)").matches;
-
-        turnstileWidgetIdRef.current = window.turnstile.render(container, {
-          sitekey: TURNSTILE_SITE_KEY,
-          theme: "light",
-          size: isMobileViewportRef.current ? "normal" : "flexible",
-          appearance: "always",
-          callback: (token) => setCaptchaToken(token || ""),
-          "expired-callback": () => setCaptchaToken(""),
-          "error-callback": () => {
-            setCaptchaToken("");
-            setCaptchaLoadError(
-              "No se pudo cargar la verificación anti-spam. Revisa bloqueadores, extensiones o prueba a recargar."
-            );
-          },
-        });
-
-        container.dataset.rendered = "true";
-        retryAttempts = 0;
-        setCaptchaReady(true);
-
-        if (loadTimeoutId) {
-          window.clearTimeout(loadTimeoutId);
-        }
-      });
-    }
-
-    function handleScriptError() {
-      setCaptchaReady(false);
-      setCaptchaLoadError(
-        "No se pudo cargar la verificación anti-spam. Revisa bloqueadores, extensiones o prueba a recargar."
-      );
-    }
-
-    const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID);
-
-    loadTimeoutId = window.setTimeout(() => {
-      if (!window.turnstile) {
-        handleScriptError();
-      }
-    }, 6000);
-
-    readinessIntervalId = window.setInterval(() => {
-      if (window.turnstile) {
-        renderTurnstile();
-      }
-    }, 250);
-
-    if (existingScript) {
-      if (window.turnstile) {
-        scheduleRender(120);
-      } else {
-        existingScript.addEventListener("load", renderTurnstile, { once: true });
-        existingScript.addEventListener("error", handleScriptError, { once: true });
-      }
-
-      return () => {
-        cancelled = true;
-        if (loadTimeoutId) {
-          window.clearTimeout(loadTimeoutId);
-        }
-        if (readinessIntervalId) {
-          window.clearInterval(readinessIntervalId);
-        }
-        clearRenderTimers();
-        resizeObserver?.disconnect();
-        window.removeEventListener("resize", handleViewportChange);
-        window.removeEventListener("orientationchange", handleViewportChange);
-        window.removeEventListener("pageshow", handleViewportChange);
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      };
-    }
-
-    const script = document.createElement("script");
-    script.id = TURNSTILE_SCRIPT_ID;
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.defer = true;
-    script.addEventListener("load", renderTurnstile, { once: true });
-    script.addEventListener("error", handleScriptError, { once: true });
-    document.head.appendChild(script);
-
-    function handleViewportChange() {
-      const container =
-        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-      if (!container || container.dataset.rendered === "true") return;
-      scheduleRender(120);
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        handleViewportChange();
-      }
-    }
-
-    window.addEventListener("resize", handleViewportChange);
-    window.addEventListener("orientationchange", handleViewportChange);
-    window.addEventListener("pageshow", handleViewportChange);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    const observedContainer =
-      turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-    if (observedContainer && typeof window.ResizeObserver === "function") {
-      resizeObserver = new window.ResizeObserver(() => handleViewportChange());
-      resizeObserver.observe(observedContainer);
-    }
-
-    return () => {
-      cancelled = true;
-      if (loadTimeoutId) {
-        window.clearTimeout(loadTimeoutId);
-      }
-      if (readinessIntervalId) {
-        window.clearInterval(readinessIntervalId);
-      }
-      clearRenderTimers();
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", handleViewportChange);
-      window.removeEventListener("orientationchange", handleViewportChange);
-      window.removeEventListener("pageshow", handleViewportChange);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [captchaEnabled, showCheckoutForm, turnstileContainerId]);
-
-  useEffect(() => {
-    if (!captchaEnabled || !showCheckoutForm || !window.turnstile) return;
-    if (turnstileWidgetIdRef.current === null) return;
-
-    const isMobileViewport = window.matchMedia("(max-width: 599px)").matches;
-    if (isMobileViewport !== isMobileViewportRef.current) {
-      const container =
-        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-      if (container) {
-        window.turnstile.remove(turnstileWidgetIdRef.current);
-        turnstileWidgetIdRef.current = null;
-        container.innerHTML = "";
-        delete container.dataset.rendered;
-        setCaptchaReady(false);
-      }
-      return;
-    }
-
-    setCaptchaToken("");
-    window.turnstile.reset(turnstileWidgetIdRef.current);
-  }, [captchaEnabled, deliveryMethod, showCheckoutForm]);
 
   useEffect(() => {
     if (!showCheckoutForm || !checkoutPanelRef.current) return;
@@ -556,8 +324,6 @@ export default function Cart() {
     setOrderError("");
     setOrderSuccess("");
 
-    const resolvedCaptchaToken = captchaEnabled ? getCaptchaTokenValue() : null;
-
     if (!items.length) {
       setOrderError("Tu carrito está vacío.");
       return;
@@ -570,11 +336,6 @@ export default function Cart() {
 
     if (!supabase) {
       setOrderError("Supabase no está configurado.");
-      return;
-    }
-
-    if (captchaEnabled && !resolvedCaptchaToken) {
-      setOrderError("Completa la verificación CAPTCHA antes de enviar el pedido.");
       return;
     }
 
@@ -610,7 +371,6 @@ export default function Cart() {
           value: appliedDiscount.value,
         }
         : null,
-      captcha_token: resolvedCaptchaToken,
     };
 
     setSubmittingOrder(true);
@@ -668,16 +428,11 @@ export default function Cart() {
     setPaymentMethod("bizum");
     setOrderNotes("");
     setAcceptedPrivacy(false);
-    setCaptchaToken("");
     setOrderReference(finalReference);
     setReceiptData(receiptSnapshot);
     setOrderSuccess(
       warning || "Pedido enviado correctamente. Ya puedes descargar el albarán del pedido."
     );
-
-    if (captchaEnabled && window.turnstile && turnstileWidgetIdRef.current !== null) {
-      window.turnstile.reset(turnstileWidgetIdRef.current);
-    }
   }
 
   return (
@@ -1049,25 +804,6 @@ export default function Cart() {
                     </span>
                   </label>
 
-                  {captchaEnabled ? (
-                    <div className="cart-page__captcha cart-page__field--full">
-                      <span>Verificación anti-spam</span>
-                      <div id={turnstileContainerId} ref={turnstileContainerRef} />
-                      {captchaLoadError ? (
-                        <p className="cart-page__captchaHelp cart-page__captchaHelp--error">
-                          {captchaLoadError}
-                        </p>
-                      ) : null}
-                      {!captchaReady ? (
-                        <p className="cart-page__captchaHelp">Cargando verificación...</p>
-                      ) : null}
-                      {captchaReady && !captchaLoadError && !captchaToken ? (
-                        <p className="cart-page__captchaHelp">
-                          Completa la verificación antes de enviar el pedido.
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
                 </div>
 
                 {orderError ? (
@@ -1093,11 +829,7 @@ export default function Cart() {
                 <button
                   type="submit"
                   className="cart-page__submitOrder"
-                  disabled={
-                    submittingOrder ||
-                    (captchaEnabled &&
-                      (!captchaReady || Boolean(captchaLoadError) || !captchaValidated))
-                  }
+                  disabled={submittingOrder}
                 >
                   {submittingOrder ? "Enviando pedido..." : "Enviar pedido"}
                 </button>

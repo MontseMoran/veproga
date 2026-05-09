@@ -32,7 +32,6 @@ function paymentLabel(value?: string) {
 const FREE_SHIPPING_THRESHOLD = 60;
 const STANDARD_SHIPPING_EUR = 4.95;
 const HEAVY_SHIPPING_EUR = 7.95;
-const TURNSTILE_ENABLED = Deno.env.get("TURNSTILE_ENABLED") === "true";
 
 function isHeavyShippingItem(item?: Record<string, unknown>) {
   return Boolean(item?.is_heavy_shipping);
@@ -67,47 +66,6 @@ function getShippingSummary(
         ? "Envío ropa de cama pesada"
         : "Envío estándar",
   };
-}
-
-async function verifyTurnstileToken(token?: string, remoteIp?: string | null) {
-  if (!TURNSTILE_ENABLED) {
-    return { ok: true, enabled: false };
-  }
-
-  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
-
-  if (!secret) {
-    return { ok: false, enabled: true, error: "TURNSTILE_SECRET_KEY is missing" };
-  }
-
-  if (!token) {
-    return { ok: false, enabled: true, error: "Missing CAPTCHA token" };
-  }
-
-  const formData = new FormData();
-  formData.append("secret", secret);
-  formData.append("response", token);
-
-  if (remoteIp) {
-    formData.append("remoteip", remoteIp);
-  }
-
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    return { ok: false, enabled: true, error: "CAPTCHA verification failed" };
-  }
-
-  const data = await response.json();
-
-  if (!data?.success) {
-    return { ok: false, enabled: true, error: "Invalid CAPTCHA token" };
-  }
-
-  return { ok: true, enabled: true };
 }
 
 async function buildSequentialReference(supabase: ReturnType<typeof createClient>) {
@@ -467,17 +425,6 @@ Deno.serve(async (req: Request) => {
   try {
     const payload = await req.json();
     const items = Array.isArray(payload?.items) ? payload.items : [];
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const remoteIp = forwardedFor?.split(",")[0]?.trim() || null;
-
-    const captchaCheck = await verifyTurnstileToken(payload?.captcha_token, remoteIp);
-
-    if (!captchaCheck.ok) {
-      return new Response(JSON.stringify({ error: captchaCheck.error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     if (!payload?.customer?.name || !payload?.customer?.email || !payload?.customer?.phone) {
       return new Response(JSON.stringify({ error: "Missing customer data" }), {
