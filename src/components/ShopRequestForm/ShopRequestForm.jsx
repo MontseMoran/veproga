@@ -102,8 +102,24 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
   const isMobileViewportRef = useRef(false);
 
   function getCaptchaTokenValue() {
-    if (captchaToken) {
-      return captchaToken;
+    const stateToken = String(captchaToken || "").trim();
+    if (stateToken) {
+      return stateToken;
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      window.turnstile &&
+      typeof window.turnstile.getResponse === "function" &&
+      turnstileWidgetIdRef.current !== null
+    ) {
+      const widgetToken = String(
+        window.turnstile.getResponse(turnstileWidgetIdRef.current) || ""
+      ).trim();
+
+      if (widgetToken) {
+        return widgetToken;
+      }
     }
 
     if (typeof document === "undefined") {
@@ -113,6 +129,7 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
     const container =
       turnstileContainerRef.current || document.getElementById(turnstileContainerId);
     const tokenField =
+      document.getElementById(`${turnstileContainerId}-token`) ||
       container?.querySelector('input[name="cf-turnstile-response"]') ||
       document.querySelector('input[name="cf-turnstile-response"]');
 
@@ -491,6 +508,13 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
         {captchaEnabled ? (
           <div className="shop-request__captcha shop-request__field--full">
             <span>{COPY.captchaLabel}</span>
+            <input
+              id={`${turnstileContainerId}-token`}
+              type="hidden"
+              name="captcha_token"
+              value={captchaToken}
+              readOnly
+            />
             <div id={turnstileContainerId} ref={turnstileContainerRef} />
             {captchaLoadError ? (
               <div className="shop-request__msg shop-request__msg--err">{captchaLoadError}</div>
