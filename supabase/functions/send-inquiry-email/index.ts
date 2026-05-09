@@ -29,7 +29,6 @@ type InquiryPayload = {
   requested_item?: string | null;
   requested_size?: string | null;
   notes?: string | null;
-  captcha_token?: string | null;
 };
 
 function escapeHtml(value: string) {
@@ -49,43 +48,6 @@ function getModeLabel(mode?: string) {
   }
 
   return "Ha enviado una consulta";
-}
-
-async function verifyTurnstileToken(token?: string | null, remoteIp?: string | null) {
-  const secret = Deno.env.get("TURNSTILE_SECRET_KEY");
-
-  if (!secret) {
-    return { ok: true, enabled: false };
-  }
-
-  if (!token) {
-    return { ok: false, enabled: true, error: "Missing CAPTCHA token" };
-  }
-
-  const formData = new FormData();
-  formData.append("secret", secret);
-  formData.append("response", token);
-
-  if (remoteIp) {
-    formData.append("remoteip", remoteIp);
-  }
-
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    return { ok: false, enabled: true, error: "CAPTCHA verification failed" };
-  }
-
-  const data = await response.json();
-
-  if (!data?.success) {
-    return { ok: false, enabled: true, error: "Invalid CAPTCHA token" };
-  }
-
-  return { ok: true, enabled: true };
 }
 
 function buildSubject(payload: InquiryPayload) {
@@ -161,16 +123,6 @@ Deno.serve(async (req: Request) => {
 
   try {
     const payload = (await req.json()) as InquiryPayload;
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const remoteIp = forwardedFor?.split(",")[0]?.trim() || null;
-    const captchaCheck = await verifyTurnstileToken(payload?.captcha_token, remoteIp);
-
-    if (!captchaCheck.ok) {
-      return new Response(JSON.stringify({ error: captchaCheck.error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const senderEmail =

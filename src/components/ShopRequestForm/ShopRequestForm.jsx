@@ -1,10 +1,7 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import "./ShopRequestForm.scss";
-
-const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
-const TURNSTILE_SCRIPT_ID = "cf-turnstile-script";
 
 const COPY = {
   title: "¿Necesitas otra talla o una prenda parecida?",
@@ -25,11 +22,6 @@ const COPY = {
   error: "No se pudo enviar la petición. Inténtalo de nuevo.",
   sending: "Enviando...",
   submit: "Enviar petición",
-  captchaRequired: "Completa la verificación anti-spam para continuar.",
-  captchaLoading: "Cargando verificación...",
-  captchaLabel: "Verificación anti-spam",
-  captchaLoadError:
-    "No se pudo cargar la verificación anti-spam. Revisa bloqueadores, extensiones o prueba a recargar.",
   privacyPrefix: "He leído y acepto la ",
   privacyLink: "política de privacidad",
   privacyRequired: "Debes aceptar la política de privacidad para continuar.",
@@ -91,246 +83,6 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
   const [sending, setSending] = useState(false);
   const [okMsg, setOkMsg] = useState("");
   const [errMsg, setErrMsg] = useState("");
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [captchaReady, setCaptchaReady] = useState(!TURNSTILE_SITE_KEY);
-  const [captchaLoadError, setCaptchaLoadError] = useState("");
-  const turnstileContainerId = `shop-request-turnstile-${product?.id || "default"}`;
-  const turnstileWidgetIdRef = useRef(null);
-  const turnstileContainerRef = useRef(null);
-  const captchaEnabled = Boolean(TURNSTILE_SITE_KEY);
-  const captchaValidated = !captchaEnabled || Boolean(captchaToken);
-  const isMobileViewportRef = useRef(false);
-
-  function getCaptchaTokenValue() {
-    const stateToken = String(captchaToken || "").trim();
-    if (stateToken) {
-      return stateToken;
-    }
-
-    if (
-      typeof window !== "undefined" &&
-      window.turnstile &&
-      typeof window.turnstile.getResponse === "function" &&
-      turnstileWidgetIdRef.current !== null
-    ) {
-      const widgetToken = String(
-        window.turnstile.getResponse(turnstileWidgetIdRef.current) || ""
-      ).trim();
-
-      if (widgetToken) {
-        return widgetToken;
-      }
-    }
-
-    if (typeof document === "undefined") {
-      return "";
-    }
-
-    const container =
-      turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-    const tokenField =
-      document.getElementById(`${turnstileContainerId}-token`) ||
-      container?.querySelector('input[name="cf-turnstile-response"]') ||
-      document.querySelector('input[name="cf-turnstile-response"]');
-
-    return String(tokenField?.value || "").trim();
-  }
-
-  useEffect(() => {
-    if (!TURNSTILE_SITE_KEY || !isOpen) return undefined;
-
-    let cancelled = false;
-    let loadTimeoutId = null;
-    let readinessIntervalId = null;
-    let renderFrameId = null;
-    let renderRetryTimeoutId = null;
-    let retryAttempts = 0;
-    let resizeObserver = null;
-
-    function clearRenderTimers() {
-      if (renderFrameId) {
-        window.cancelAnimationFrame(renderFrameId);
-        renderFrameId = null;
-      }
-
-      if (renderRetryTimeoutId) {
-        window.clearTimeout(renderRetryTimeoutId);
-        renderRetryTimeoutId = null;
-      }
-    }
-
-    function scheduleRender(delay = 0) {
-      if (cancelled) return;
-
-      clearRenderTimers();
-      renderRetryTimeoutId = window.setTimeout(() => {
-        renderRetryTimeoutId = null;
-        renderTurnstile();
-      }, delay);
-    }
-
-    function renderTurnstile() {
-      if (cancelled || !window.turnstile) return;
-
-      const container =
-        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-      if (!container || container.dataset.rendered === "true") return;
-
-      setCaptchaLoadError("");
-      setCaptchaReady(false);
-      clearRenderTimers();
-
-      renderFrameId = window.requestAnimationFrame(() => {
-        if (cancelled || !window.turnstile || container.dataset.rendered === "true") return;
-
-        const hasLayout = container.offsetWidth > 0;
-
-        if (!hasLayout) {
-          if (retryAttempts < 12) {
-            retryAttempts += 1;
-            scheduleRender(180);
-          }
-          return;
-        }
-
-        isMobileViewportRef.current = window.matchMedia("(max-width: 599px)").matches;
-
-        turnstileWidgetIdRef.current = window.turnstile.render(container, {
-          sitekey: TURNSTILE_SITE_KEY,
-          theme: "light",
-          size: isMobileViewportRef.current ? "normal" : "flexible",
-          appearance: "always",
-          callback: (token) => setCaptchaToken(token || ""),
-          "expired-callback": () => setCaptchaToken(""),
-          "error-callback": () => {
-            setCaptchaToken("");
-            setCaptchaLoadError(COPY.captchaLoadError);
-          },
-        });
-
-        container.dataset.rendered = "true";
-        retryAttempts = 0;
-        setCaptchaReady(true);
-
-        if (loadTimeoutId) {
-          window.clearTimeout(loadTimeoutId);
-        }
-      });
-    }
-
-    function handleScriptError() {
-      setCaptchaReady(false);
-      setCaptchaLoadError(COPY.captchaLoadError);
-    }
-
-    const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID);
-
-    loadTimeoutId = window.setTimeout(() => {
-      if (!window.turnstile) {
-        handleScriptError();
-      }
-    }, 6000);
-
-    readinessIntervalId = window.setInterval(() => {
-      if (window.turnstile) {
-        renderTurnstile();
-      }
-    }, 250);
-
-    if (existingScript) {
-      if (window.turnstile) {
-        scheduleRender(120);
-      } else {
-        existingScript.addEventListener("load", renderTurnstile, { once: true });
-        existingScript.addEventListener("error", handleScriptError, { once: true });
-      }
-
-      return () => {
-        cancelled = true;
-        if (loadTimeoutId) {
-          window.clearTimeout(loadTimeoutId);
-        }
-        if (readinessIntervalId) {
-          window.clearInterval(readinessIntervalId);
-        }
-        clearRenderTimers();
-        resizeObserver?.disconnect();
-        window.removeEventListener("resize", handleViewportChange);
-        window.removeEventListener("orientationchange", handleViewportChange);
-        window.removeEventListener("pageshow", handleViewportChange);
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      };
-    }
-
-    const script = document.createElement("script");
-    script.id = TURNSTILE_SCRIPT_ID;
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.defer = true;
-    script.addEventListener("load", renderTurnstile, { once: true });
-    script.addEventListener("error", handleScriptError, { once: true });
-    document.head.appendChild(script);
-
-    function handleViewportChange() {
-      const container =
-        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-      if (!container || container.dataset.rendered === "true") return;
-      scheduleRender(120);
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        handleViewportChange();
-      }
-    }
-
-    window.addEventListener("resize", handleViewportChange);
-    window.addEventListener("orientationchange", handleViewportChange);
-    window.addEventListener("pageshow", handleViewportChange);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    const observedContainer =
-      turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-    if (observedContainer && typeof window.ResizeObserver === "function") {
-      resizeObserver = new window.ResizeObserver(() => handleViewportChange());
-      resizeObserver.observe(observedContainer);
-    }
-
-    return () => {
-      cancelled = true;
-      if (loadTimeoutId) {
-        window.clearTimeout(loadTimeoutId);
-      }
-      if (readinessIntervalId) {
-        window.clearInterval(readinessIntervalId);
-      }
-      clearRenderTimers();
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", handleViewportChange);
-      window.removeEventListener("orientationchange", handleViewportChange);
-      window.removeEventListener("pageshow", handleViewportChange);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isOpen, turnstileContainerId]);
-
-  useEffect(() => {
-    if (!captchaEnabled || !isOpen || !window.turnstile) return;
-    if (turnstileWidgetIdRef.current === null) return;
-
-    const isMobileViewport = window.matchMedia("(max-width: 599px)").matches;
-    if (isMobileViewport !== isMobileViewportRef.current) {
-      const container =
-        turnstileContainerRef.current || document.getElementById(turnstileContainerId);
-      if (container) {
-        window.turnstile.remove(turnstileWidgetIdRef.current);
-        turnstileWidgetIdRef.current = null;
-        container.innerHTML = "";
-        delete container.dataset.rendered;
-        setCaptchaToken("");
-        setCaptchaReady(false);
-      }
-    }
-  }, [captchaEnabled, isOpen, turnstileContainerId]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -342,12 +94,6 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
     try {
       if (!supabase) {
         throw new Error("El cliente de Supabase no está configurado.");
-      }
-
-      const resolvedCaptchaToken = captchaEnabled ? getCaptchaTokenValue() : null;
-
-      if (captchaEnabled && !resolvedCaptchaToken) {
-        throw new Error(COPY.captchaRequired);
       }
 
       const payload = {
@@ -375,7 +121,6 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
           requested_item: payload.requested_item,
           requested_size: payload.requested_size,
           notes: payload.notes,
-          captcha_token: resolvedCaptchaToken,
           message: [
             `${COPY.product}: ${product?.name || "-"}`,
             `${COPY.category}: ${categoryName || "-"}`,
@@ -397,14 +142,9 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
       setRequestedSize("");
       setNotes("");
       setAcceptedPrivacy(false);
-      setCaptchaToken("");
       setOkMsg(COPY.success);
       setIsOpen(true);
       onSuccess?.();
-
-      if (TURNSTILE_SITE_KEY && window.turnstile && turnstileWidgetIdRef.current !== null) {
-        window.turnstile.reset(turnstileWidgetIdRef.current);
-      }
     } catch (error) {
       console.error("Error al enviar el formulario de solicitud:", error);
       setErrMsg(await getFunctionErrorMessage(error, COPY.error));
@@ -505,36 +245,13 @@ export default function ShopRequestForm({ product, categoryName, onSuccess }) {
           </span>
         </label>
 
-        {captchaEnabled ? (
-          <div className="shop-request__captcha shop-request__field--full">
-            <span>{COPY.captchaLabel}</span>
-            <input
-              id={`${turnstileContainerId}-token`}
-              type="hidden"
-              name="captcha_token"
-              value={captchaToken}
-              readOnly
-            />
-            <div id={turnstileContainerId} ref={turnstileContainerRef} />
-            {captchaLoadError ? (
-              <div className="shop-request__msg shop-request__msg--err">{captchaLoadError}</div>
-            ) : null}
-            {!captchaReady ? <div className="shop-request__msg">{COPY.captchaLoading}</div> : null}
-            {captchaReady && !captchaLoadError && !captchaToken ? (
-              <div className="shop-request__msg">{COPY.captchaRequired}</div>
-            ) : null}
-          </div>
-        ) : null}
-
         {errMsg ? <div className="shop-request__msg shop-request__msg--err">{errMsg}</div> : null}
         {okMsg ? <div className="shop-request__msg shop-request__msg--ok">{okMsg}</div> : null}
 
         <button
           type="submit"
           className="shop-request__btn"
-          disabled={
-            sending || (captchaEnabled && (!captchaReady || Boolean(captchaLoadError) || !captchaValidated))
-          }
+          disabled={sending}
         >
           {sending ? COPY.sending : COPY.submit}
         </button>
