@@ -5,120 +5,95 @@ import { supabase } from "../lib/supabaseClient";
 import "../styles/shop.scss";
 
 const CATEGORY_PRESETS = {
-  mujer: {
-    title: "Mujer",
-    subtitle: "Moda, bolsos y zapatos",
-    collectionLabel: "Nueva temporada",
-    accent: "rose",
-  },
-  hombre: {
-    title: "Hombre",
-    subtitle: "Ropa, zapatillas y moda casual",
-    collectionLabel: "Básicos",
+  animales: {
+    title: "Animales",
+    subtitle: "Alimentación, higiene, zoosanitarios y material ganadero",
+    collectionLabel: "Para tus animales",
     accent: "stone",
   },
-  bebes: {
-    title: "Bebé",
-    subtitle: "Ropa, canastillas y primeras puestas",
-    collectionLabel: "Bebé",
-    accent: "sky",
+  cultivo: {
+    title: "Cultivo",
+    subtitle: "Semillas, planteles, abonos, sustratos y riego",
+    collectionLabel: "Para tu huerta",
+    accent: "green",
   },
-  "infantil-juvenil": {
-    title: "Infantil",
-    subtitle: "Ropa y calzado infantil",
-    collectionLabel: "Moda infantil",
-    accent: "sky",
-  },
-  hogar: {
-    title: "Hogar",
-    subtitle: "Textiles y detalles para casa",
-    collectionLabel: "Textil hogar",
+  jardin: {
+    title: "Jardín",
+    subtitle: "Plantas ornamentales, macetas, herramientas y decoración",
+    collectionLabel: "Jardín y plantas",
     accent: "linen",
   },
-  otros: {
-    title: "Otros",
-    subtitle: "Hilos, costura y pequeños artículos",
-    collectionLabel: "Otros",
-    accent: "rose",
-  },
-  outlet: {
-    title: "Outlet",
-    subtitle: "Remates y oportunidades",
-    collectionLabel: "Outlet",
+  tratamientos: {
+    title: "Tratamientos",
+    subtitle: "Insecticidas, herbicidas, fungicidas y soluciones específicas",
+    collectionLabel: "Soluciones técnicas",
     accent: "stone",
+  },
+  ofertas: {
+    title: "Ofertas",
+    subtitle: "Productos en promoción o liquidación",
+    collectionLabel: "Ofertas",
+    accent: "sale",
   },
 };
 
 const CATEGORY_IMAGES = {
-  mujer: "/images/mujer.png",
-  hombre: "/images/hombre.png",
-  bebes: "/images/bebe.png",
-  "infantil-juvenil": "/images/infantil-juvenil.png",
-  hogar: "/images/hogar.png",
+  animales: "/images/animales.png",
+  cultivo: "/images/cultivo.png",
+  jardin: "/images/jardin.png",
+  tratamientos: "/images/tratamientos.png",
+  ofertas: "/images/ofertas.png",
 };
 
 const FALLBACK_CATEGORIES = [
-  { slug: "mujer", name: "Mujer", description: "Moda, bolsos y zapatos" },
-  { slug: "hombre", name: "Hombre", description: "Ropa, zapatillas y moda casual" },
-  { slug: "bebes", name: "Bebé", description: "Ropa, canastillas y primeras puestas" },
-  { slug: "hogar", name: "Hogar", description: "Textiles y detalles para casa" },
-  {
-    slug: "infantil-juvenil",
-    name: "Infantil-Juvenil",
-    description: "Ropa y calzado infantil",
-  },
-  { slug: "otros", name: "Otros", description: "Hilos, costura y pequeños artículos" },
-  { slug: "outlet", name: "Outlet", description: "Remates y oportunidades" },
+  { slug: "animales", name: "Animales", description: "Alimentación, higiene, zoosanitarios y material ganadero" },
+  { slug: "cultivo", name: "Cultivo", description: "Semillas, planteles, abonos, sustratos y riego" },
+  { slug: "jardin", name: "Jardín", description: "Plantas ornamentales, macetas, herramientas y decoración" },
+  { slug: "tratamientos", name: "Tratamientos", description: "Insecticidas, herbicidas, fungicidas y soluciones específicas" },
+  { slug: "ofertas", name: "Ofertas", description: "Productos en promoción o liquidación" },
 ];
 
 const HOME_CATEGORIES = [
   {
-    slug: "mujer",
-    name: "Mujer",
-    description: "Moda, bolsos y zapatos",
-    accent: "rose",
-    imageUrl: "/images/mujer.png",
-  },
-  {
-    slug: "hombre",
-    name: "Hombre",
-    description: "Ropa, zapatillas y moda casual",
+    slug: "animales",
+    name: "Animales",
+    description: "Alimentación, higiene, zoosanitarios y material ganadero",
     accent: "stone",
-    imageUrl: "/images/hombre.png",
+    imageUrl: "/images/animales.png",
   },
   {
-    slug: "bebes",
-    name: "Bebé",
-    description: "Ropa, canastillas y primeras puestas",
-    accent: "sky",
-    imageUrl: "/images/bebe.png",
+    slug: "cultivo",
+    name: "Cultivo",
+    description: "Semillas, planteles, abonos, sustratos y riego",
+    accent: "green",
+    imageUrl: "/images/cultivo.png",
   },
   {
-    slug: "infantil-juvenil",
-    name: "Infantil y juvenil",
-    description: "Ropa y calzado infantil",
-    accent: "sky",
-    imageUrl: "/images/infantil-juvenil.png",
-  },
-  {
-    slug: "hogar",
-    name: "Hogar",
-    description: "Textiles y detalles para casa",
+    slug: "jardin",
+    name: "Jardín",
+    description: "Plantas ornamentales, macetas, herramientas y decoración",
     accent: "linen",
-    imageUrl: "/images/hogar.png",
+    imageUrl: "/images/jardin.png",
   },
   {
-    slug: "outlet",
-    name: "Outlet",
-    description: "Últimas unidades y oportunidades",
+    slug: "tratamientos",
+    name: "Tratamientos",
+    description: "Insecticidas, herbicidas, fungicidas y soluciones específicas",
+    accent: "stone",
+    imageUrl: "/images/tratamientos.png",
+  },
+  {
+    slug: "ofertas",
+    name: "Ofertas",
+    description: "Productos en promoción o liquidación",
     accent: "sale",
-    imageUrl: "/images/outlet.png",
+    imageUrl: "/images/ofertas.png",
   },
 ];
 
 const COPY = {
   categoriesTitle: "Categorías",
-  productsTitle: "Novedades destacadas",
+  productsTitle: "Productos destacados",
   loading: "Cargando catálogo...",
   empty: "Todavía no hay productos cargados.",
   unavailable: "Imagen pendiente",
@@ -133,7 +108,7 @@ function normalizeCategory(raw) {
     slug: raw.slug,
     name: raw.name || preset.title || raw.slug,
     description: raw.description || preset.subtitle || "",
-    accent: preset.accent || "rose",
+    accent: preset.accent || "stone",
     collectionLabel: preset.collectionLabel || raw.name || raw.slug,
     sortOrder: raw.sort_order || 0,
     imageUrl: CATEGORY_IMAGES[raw.slug] || "",
@@ -142,9 +117,9 @@ function normalizeCategory(raw) {
 
 export default function Shop() {
   useSeo({
-    title: "Bolboretas & Valu | Tienda online de ropa y complementos",
+    title: "Veproga | Productos zoosanitarios y agrotienda online",
     description:
-      "Descubre ropa, complementos y textil hogar en Bolboretas & Valu. Colecciones para mujer, hombre, bebé, infantil y hogar.",
+      "Compra productos para animales, cultivo, jardín, tratamientos y ofertas en Veproga.",
     path: "/tienda",
   });
 
@@ -235,7 +210,7 @@ export default function Shop() {
             images: sortedImages.map((img) => img.image_url),
             categories: productCategories,
             categoryName: firstCategory?.name || "Sin categoría",
-            accent: firstCategory?.accent || "rose",
+            accent: firstCategory?.accent || "stone",
           };
         });
 
@@ -295,14 +270,17 @@ export default function Shop() {
     () => products.slice(0, featuredLimit),
     [products, featuredLimit]
   );
+
   const maxFeaturedStart = useMemo(
     () => Math.max(0, featuredProducts.length - featuredVisibleCount),
     [featuredProducts.length, featuredVisibleCount]
   );
+
   const visibleFeaturedProducts = useMemo(
     () => featuredProducts.slice(featuredStart, featuredStart + featuredVisibleCount),
     [featuredProducts, featuredStart, featuredVisibleCount]
   );
+
   useEffect(() => {
     setFeaturedStart((current) => Math.min(current, maxFeaturedStart));
   }, [maxFeaturedStart]);
@@ -324,7 +302,7 @@ export default function Shop() {
         <header className="shop__hero reveal-on-scroll" style={{ "--reveal-delay": "40ms" }}>
           <img
             src="/images/logo.png"
-            alt="Bolboretas & Valu"
+            alt="Veproga"
             className="shop__heroLogo"
           />
         </header>
@@ -380,6 +358,7 @@ export default function Shop() {
           </div>
 
           {loading ? <p className="shop__status">{COPY.loading}</p> : null}
+
           {!loading && featuredProducts.length === 0 ? (
             <p className="shop__status">{COPY.empty}</p>
           ) : null}
@@ -459,7 +438,6 @@ export default function Shop() {
             ) : null}
           </div>
         </section>
-
       </div>
     </main>
   );

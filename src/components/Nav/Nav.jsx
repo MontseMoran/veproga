@@ -4,13 +4,11 @@ import { useCart } from "../../lib/cartContext";
 import "./nav.scss";
 
 const categoryLinks = [
-  { to: "/categoria/mujer", label: "Mujer" },
-  { to: "/categoria/hombre", label: "Hombre" },
-  { to: "/categoria/bebes", label: "Bebé" },
-  { to: "/categoria/infantil-juvenil", label: "Infantil-Juvenil" },
-  { to: "/categoria/hogar", label: "Hogar" },
-  { to: "/categoria/otros", label: "Otros" },
-  { to: "/categoria/outlet", label: "Outlet" },
+  { to: "/categoria/animales", label: "Animales" },
+  { to: "/categoria/cultivo", label: "Cultivo" },
+  { to: "/categoria/jardin", label: "Jardín" },
+  { to: "/categoria/tratamientos", label: "Tratamientos" },
+  { to: "/categoria/ofertas", label: "Ofertas" },
 ];
 
 function CartIcon() {
@@ -35,11 +33,11 @@ export default function Nav() {
   return (
     <header className="nav">
       <div className="nav-inner">
-        
-        <Link to="/" className="brand" aria-label="Bolboretas & Valu">
+
+        <Link to="/" className="brand" aria-label="Veproga">
           <img
             src="/images/logo.png"
-            alt="Bolboretas & Valu"
+            alt="Veproga"
             className="brand-logo"
           />
         </Link>
@@ -77,7 +75,9 @@ export default function Nav() {
             aria-label="Ver carrito"
           >
             <CartIcon />
-            {itemCount > 0 ? <span className="nav-cartCount">{itemCount}</span> : null}
+            {itemCount > 0 ? (
+              <span className="nav-cartCount">{itemCount}</span>
+            ) : null}
           </Link>
         </div>
       </div>

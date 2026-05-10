@@ -4,7 +4,7 @@ import ShopRequestForm from "../components/ShopRequestForm/ShopRequestForm";
 import { useCart } from "../lib/cartContext";
 import { useSeo } from "../lib/seo";
 import { supabase } from "../lib/supabaseClient";
-import "../styles/productDetail.scss"
+import "../styles/productDetail.scss";
 
 function formatPrice(value) {
   return `${Number(value || 0).toFixed(2).replace(".", ",")} EUR`;
@@ -13,13 +13,15 @@ function formatPrice(value) {
 export default function ProductDetail() {
   const { slug } = useParams();
   const { addItem } = useCart();
+
   const [product, setProduct] = useState(null);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [addedMessage, setAddedMessage] = useState("");
-const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
   useEffect(() => {
     let active = true;
 
@@ -54,11 +56,8 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
             ),
             shop_product_variants (
               id,
-              sku,
               color,
               size,
-              price_eur,
-              sort_order,
               is_active
             ),
             shop_product_categories (
@@ -80,9 +79,11 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
         const images = [...(data.shop_product_images || [])].sort(
           (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
         );
-        const variants = [...(data.shop_product_variants || [])]
-          .filter((variant) => variant.is_active !== false)
-          .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+        const variants = [...(data.shop_product_variants || [])].filter(
+          (variant) => variant.is_active !== false
+        );
+
         const categories = (data.shop_product_categories || [])
           .map((row) => row.shop_categories)
           .filter(Boolean);
@@ -103,6 +104,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
           variants,
           categories,
         });
+
         setSelectedColor(variants[0]?.color || "");
         setSelectedSize(variants[0]?.size || "");
         setActiveImageIndex(0);
@@ -124,7 +126,9 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   }, [slug]);
 
   const availableColors = useMemo(() => {
-    const colors = product?.variants?.map((variant) => variant.color).filter(Boolean) || [];
+    const colors =
+      product?.variants?.map((variant) => variant.color).filter(Boolean) || [];
+
     return [...new Set(colors)];
   }, [product]);
 
@@ -149,14 +153,12 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   }, [product, selectedColor, selectedSize]);
 
   useSeo({
-    title: product?.name
-      ? `${product.name} | Bolboretas & Valu`
-      : "Producto | Bolboretas & Valu",
+    title: product?.name ? `${product.name} | Veproga` : "Producto | Veproga",
     description:
       product?.description ||
       (product?.name
-        ? `Consulta los detalles de ${product.name} en Bolboretas & Valu.`
-        : "Consulta el detalle de producto en Bolboretas & Valu."),
+        ? `Consulta los detalles de ${product.name} en Veproga.`
+        : "Consulta el detalle de producto en Veproga."),
     path: slug ? `/producto/${slug}` : "/tienda",
     image: product?.imageUrl || undefined,
   });
@@ -164,7 +166,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   function handleAddToCart() {
     if (!product) return;
 
-    const price = Number(selectedVariant?.price_eur || product.price || 0);
+    const price = Number(product.price || 0);
     const color = selectedVariant?.color || "";
     const size = selectedVariant?.size || "";
 
@@ -181,14 +183,18 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
       categorySlug: product.categories?.[0]?.slug || "",
       categoryName: product.categories?.[0]?.name || "",
       variantId: selectedVariant?.id || "",
-      variantSku: selectedVariant?.sku || "",
+      variantSku: "",
     });
 
     setAddedMessage("Producto añadido al carrito.");
   }
 
   if (loading) {
-    return <main style={{ maxWidth: 960, margin: "0 auto", padding: "32px 20px" }}>Cargando producto...</main>;
+    return (
+      <main style={{ maxWidth: 960, margin: "0 auto", padding: "32px 20px" }}>
+        Cargando producto...
+      </main>
+    );
   }
 
   if (error || !product) {
@@ -203,7 +209,13 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "32px 20px 56px" }}>
       <div style={{ display: "grid", gap: 24 }}>
-        <Link to={product.categories?.[0]?.slug ? `/categoria/${product.categories[0].slug}` : "/tienda"}>
+        <Link
+          to={
+            product.categories?.[0]?.slug
+              ? `/categoria/${product.categories[0].slug}`
+              : "/tienda"
+          }
+        >
           Volver
         </Link>
 
@@ -216,41 +228,43 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
           }}
         >
           <div>
-           {product.images?.length > 0 ? (
-  <div className="product-detail__gallery">
-    <img
-      src={product.images[activeImageIndex]?.image_url}
-      alt={product.name}
-      className="product-detail__mainImage"
-    />
+            {product.images?.length > 0 ? (
+              <div className="product-detail__gallery">
+                <img
+                  src={product.images[activeImageIndex]?.image_url}
+                  alt={product.name}
+                  className="product-detail__mainImage"
+                />
 
-    {product.images.length > 1 && (
-      <>
-        <button
-          onClick={() =>
-            setActiveImageIndex((prev) =>
-              prev === 0 ? product.images.length - 1 : prev - 1
-            )
-          }
-          className="product-detail__arrow product-detail__arrow--left"
-        >
-          ‹
-        </button>
+                {product.images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveImageIndex((prev) =>
+                          prev === 0 ? product.images.length - 1 : prev - 1
+                        )
+                      }
+                      className="product-detail__arrow product-detail__arrow--left"
+                    >
+                      ‹
+                    </button>
 
-        <button
-          onClick={() =>
-            setActiveImageIndex((prev) =>
-              prev === product.images.length - 1 ? 0 : prev + 1
-            )
-          }
-          className="product-detail__arrow product-detail__arrow--right"
-        >
-          ›
-        </button>
-      </>
-    )}
-  </div>
-) : (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveImageIndex((prev) =>
+                          prev === product.images.length - 1 ? 0 : prev + 1
+                        )
+                      }
+                      className="product-detail__arrow product-detail__arrow--right"
+                    >
+                      ›
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
               <div
                 style={{
                   width: "100%",
@@ -270,12 +284,17 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
             <div>
               <h1 style={{ margin: 0 }}>{product.name}</h1>
               <p style={{ margin: "8px 0 0", fontWeight: 700 }}>
-                {formatPrice(selectedVariant?.price_eur || product.price)}
+                {formatPrice(product.price)}
               </p>
             </div>
 
             {product.description ? <p style={{ margin: 0 }}>{product.description}</p> : null}
-            {product.material ? <p style={{ margin: 0 }}><strong>Material:</strong> {product.material}</p> : null}
+
+            {product.material ? (
+              <p style={{ margin: 0 }}>
+                <strong>Material:</strong> {product.material}
+              </p>
+            ) : null}
 
             {availableColors.length > 0 ? (
               <div className="product-detail__options">
@@ -289,7 +308,9 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
                         setSelectedColor(color);
                         setAddedMessage("");
                       }}
-                      className={`product-detail__chip ${selectedColor === color ? "is-active" : ""}`}
+                      className={`product-detail__chip ${
+                        selectedColor === color ? "is-active" : ""
+                      }`}
                     >
                       {color}
                     </button>
@@ -300,7 +321,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
 
             {availableSizes.length > 0 ? (
               <div className="product-detail__options">
-                <p className="product-detail__optionTitle">Talla</p>
+                <p className="product-detail__optionTitle">Formato</p>
                 <div className="product-detail__chips">
                   {availableSizes.map((size) => (
                     <button
@@ -310,7 +331,9 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
                         setSelectedSize(size);
                         setAddedMessage("");
                       }}
-                      className={`product-detail__chip ${selectedSize === size ? "is-active" : ""}`}
+                      className={`product-detail__chip ${
+                        selectedSize === size ? "is-active" : ""
+                      }`}
                     >
                       {size}
                     </button>

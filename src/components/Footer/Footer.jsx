@@ -23,7 +23,7 @@ export default function Footer() {
           <h3>Síguenos</h3>
           <div className="site-footer__socials">
             <a
-              href="https://www.instagram.com/bolboretas_valu/"
+              //href="https://www.instagram.com/bolboretas_valu/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -31,7 +31,7 @@ export default function Footer() {
               <img src="/images/icons/instagram.png" alt="Logo Instagram" />
             </a>
             <a
-              href="https://www.facebook.com/share/1QA1uKWLWj/"
+              //href="https://www.facebook.com/share/1QA1uKWLWj/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -39,7 +39,7 @@ export default function Footer() {
               <img src="/images/icons/facebook.png" alt="Logo Facebook" />
             </a>
             <a
-              href="https://tiktok.com/@cristinabolboretas"
+             // href="https://tiktok.com/@cristinabolboretas"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="TikTok"
@@ -47,7 +47,7 @@ export default function Footer() {
               <img src="/images/icons/tik-tok.png" alt="Logo TikTok" />
             </a>
             <a
-              href="https://www.threads.com/@bolboretas_valu"
+              //href="https://www.threads.com/@bolboretas_valu"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Threads"
